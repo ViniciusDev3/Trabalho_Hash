@@ -8,13 +8,15 @@ int main()
 {
     ifstream arquivo("nomes.txt");  // abre o arquivo para leitura
 
-    if (!arquivo.is_open()) {
+    if (!arquivo.is_open()) 
+    {
         cerr << "Erro ao abrir o arquivo!" << endl;
         return 1;
     }
 
     string linha;
-    while (getline(arquivo, linha)) {
+    while (getline(arquivo, linha)) 
+    {
         cout << " " << linha << endl;
     }
 
