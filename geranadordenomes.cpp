@@ -5,7 +5,8 @@
 
 using namespace std;
 
-string gerarNome() {
+string gerarNome() 
+{
     vector<string> nomes = 
     {
         "João", "Ana", "Carlos", "Maria", "Lucas", "Érica", "Bruno", "Juliana", "Pedro", "Camila",
