@@ -298,7 +298,7 @@ string gerarNome()
 	int i = rand() % nomes.size();
 	int j = rand() % sobrenomes.size();
 
-	return nomes[i] + " " + sobrenomes[j];
+	return nomes[i] + " " + " " + sobrenomes[j];
 }
 
 int main() 
