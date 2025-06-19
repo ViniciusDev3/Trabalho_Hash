@@ -306,7 +306,7 @@ int main()
   TreeNode* root = nullptr;
   srand(time(0));
 
-  for(int i = 0; i < 100; i++)
+  for(int i = 0; i < 3000; i++)
   {
     string nome = gerarNome();  // Gera o nome UMA vez
         
