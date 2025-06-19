@@ -15,72 +15,64 @@ public:
     Passageiro(string nome, string cpf, string codReserva, int numVoo, string assento)
     : nome(nome), cpf(cpf), codReserva(codReserva), numVoo(numVoo), assento(assento) {}
 
-    string getNome() const { return nome; }
-    string getCpf() const { return cpf; }
-    string getCodReserva() const { return codReserva; }
-    int getNumVoo() const { return numVoo; }
-    string getAssento() const { return assento; }
-
     void imprimir() const {
-        cout << "Nome: " << nome << " | CPF: " << cpf << " | Reserva: " << codReserva << " | Voo: " << numVoo << " | Assento: " << assento << endl;
+        cout << "Nome: " << nome 
+        << " | CPF: " << cpf
+        << " | Reserva: " << codReserva 
+        << " | Voo: " << numVoo 
+        << " | Assento: " 
+        << assento 
+        << endl;
     }
 };
 
-class ListPassageiros {
-private:
-    struct No
-    {
-        Passageiro p;      
-        No* proximo;      
-        
-        No(Passageiro p): p(p), proximo(nullptr) {}
-    };
-    
-    No* inicial;
+class No
+{
 public:
-    ListPassageiros(): inicial(nullptr) {}
+    Passageiro pessoal;
+    No* next;
 
-    void insert(Passageiro p) {
-
-    }
+    No(Passageiro pessoal): pessoal(pessoal), next(nullptr) {}
 };
 
 class ListaPassageiros {
 private:
-    struct No {
-        Passageiro p;
-        No* proximo;
-        No(Passageiro p) : p(p), proximo(nullptr) {}
-    };
-
-    No* inicio;
-
+    No* head;       
+    No* tail;
+        
 public:
-    ListaPassageiros() : inicio(nullptr) {}
+    ListaPassageiros(): head(nullptr), tail(nullptr) {}
 
-    void inserir(Passageiro p) {
-        No* novo = new No(p);
-        if (!inicio) {
-            inicio = novo;
+    void insert(Passageiro pessoa) {
+        No* newDate = new No(pessoa);
+        if (!head) {
+            head = tail = newDate;
         } else {
-            No* temp = inicio;
-            while (temp->proximo)
-                temp = temp->proximo;
-            temp->proximo = novo;
+            tail->next = newDate;
+            tail = newDate;
         }
     }
 
     void imprimir() const {
-        No* temp = inicio;
-        while (temp) {
-            temp->p.imprimir();
-            temp = temp->proximo;
+        No* atual = head;
+        while (atual) {
+            atual->pessoal.imprimir();
+            atual = atual->next;
         }
     }
-
-    //Gustavo
-    void inserirNaBST(class xxxx) const;
-
-    // usado para copiar para BST
-    No* getInicio() const { return inicio; } 
 };
+
+int main() {
+    ListaPassageiros lista;
+
+    Passageiro p1("João", "111.111.111-11", "R001", 123, "1A");
+    Passageiro p2("Ana", "222.222.222-22", "R002", 123, "1B");
+
+    lista.insert(p1);
+    lista.insert(p2);
+
+    cout << "📋 Lista de passageiros:\n";
+    lista.imprimir();
+
+    return 0;
+}
