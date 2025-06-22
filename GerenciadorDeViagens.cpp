@@ -29,6 +29,11 @@ public:
     string getNome() const {
         return nome;
     }
+
+    int getNumVoo() const {
+        return numVoo;
+    }
+
 };
 
 class No
@@ -75,25 +80,44 @@ public:
     No* atual = head;
     No* anterior = nullptr;
 
-    while (atual) {
-        if (atual->pessoal.getNome() == nome) {
-            if (atual == head) {
-                head = head->next;
-                if (atual == tail) tail = nullptr; // lista ficou vazia
-            } else {
-                anterior->next = atual->next;
-                if (atual == tail) tail = anterior;
+        while (atual) {
+            if (atual->pessoal.getNome() == nome) {
+                if (atual == head) {
+                    head = head->next;
+                    if (atual == tail) tail = nullptr; // lista ficou vazia
+                } else {
+                    anterior->next = atual->next;
+                    if (atual == tail) tail = anterior;
+                }
+                delete atual;
+                cout << "Passageiro com Nome " << nome << " removido com sucesso.\n";
+                return;
             }
-            delete atual;
-            cout << "Passageiro com Nome " << nome << " removido com sucesso.\n";
-            return;
+            anterior = atual;
+            atual = atual->next;
         }
-        anterior = atual;
-        atual = atual->next;
-    }
 
         cout << "Passageiro com Nome " << nome << " não encontrado.\n";
     }
+
+    void imprimirPorVoo(int numeroVoo) const {
+        No* atual = head;
+        bool encontrou = false;
+
+        cout << "\n📋 Passageiros do voo " << numeroVoo << ":\n";
+        while (atual) {
+            if (atual->pessoal.getNumVoo() == numeroVoo) {
+                atual->pessoal.imprimir();
+                encontrou = true;
+            }
+            atual = atual->next;
+        }
+
+        if (!encontrou) {
+            cout << "Nenhum passageiro encontrado para esse voo.\n";
+        }
+    }
+
 };
 
 class TreeNode 
@@ -307,6 +331,173 @@ public:
     }	
 };
 
+struct Node {
+    int chave;
+    string valor;
+    Node* proximo;
+    
+    Node(int key, const string& data) : chave(key), valor(data), proximo(nullptr) {}
+};
+
+class Voos {
+private:
+    Node** tabela_hash; //ponteiro para tabela rash
+    int tamanho_tabela;
+    
+    int hashFunction(int chave) const 
+    {
+        return chave % tamanho_tabela;
+    }
+    
+    void redimensionar(int novo_tamanho) 
+    {
+        Node** nova_tabela = new Node*[novo_tamanho]();  
+        
+        //reinsere todos os elementos na nova tabela
+        for (int i = 0; i < tamanho_tabela; ++i) 
+        {
+            Node* atual = tabela_hash[i];
+            while (atual != nullptr) 
+            {
+                Node* proximo = atual->proximo;
+                int novo_indice = hashFunction(atual->chave) % novo_tamanho;
+                
+                atual->proximo = nova_tabela[novo_indice];
+                nova_tabela[novo_indice] = atual;
+                
+                atual = proximo;
+            }
+        }
+        
+        //libera a tabela antiga e atualiza
+        delete[] tabela_hash;
+        tabela_hash = nova_tabela;
+        tamanho_tabela = novo_tamanho;
+    }
+    
+    void limparTabela() 
+    {
+        for (int i = 0; i < tamanho_tabela; ++i) 
+        {
+            Node* atual = tabela_hash[i];
+            while (atual != nullptr) 
+            {
+                Node* proximo = atual->proximo;
+                delete atual;
+                atual = proximo;
+            }
+        }
+    }
+
+public:
+    // construtor
+    Voos(int tamanho_inicial = 10) : tamanho_tabela(tamanho_inicial) {
+        tabela_hash = new Node*[tamanho_tabela]();  
+    }
+    
+    // destrutor
+    ~Voos() {
+        limparTabela();
+        delete[] tabela_hash;
+    }
+    
+    void cadastrarVoo() 
+    {
+        int numero_voo;
+        string destino;
+
+        cout << "Digite o NÚMERO do voo: ";
+        cin >> numero_voo;
+        cout << "Digite o DESTINO do voo: ";
+        cin.ignore();
+        getline(cin, destino);
+
+        inserir(numero_voo, destino);
+    }
+
+    void inserir(int chave, const string& valor) 
+    {
+        // redimensiona se fator de carga > 0.7
+        if (contarElementos() > 0.7 * tamanho_tabela) 
+        {
+            redimensionar(tamanho_tabela * 2);
+        }
+        
+        int indice = hashFunction(chave);
+        
+        // verifica se a chave já existe
+        Node* atual = tabela_hash[indice];
+        while (atual != nullptr) 
+        {
+            if (atual->chave == chave) 
+            {
+                atual->valor = valor;
+                cout << "Voo " << chave << " atualizado.\n";
+                return;
+            }
+            atual = atual->proximo;
+        }
+        
+        // insere novo nó no início da lista
+        Node* novo = new Node(chave, valor);
+        novo->proximo = tabela_hash[indice];
+        tabela_hash[indice] = novo;
+    }
+    
+    int contarElementos() const 
+    {
+        int count = 0;
+        for (int i = 0; i < tamanho_tabela; ++i) 
+        {
+            Node* atual = tabela_hash[i];
+            while (atual != nullptr) 
+            {
+                ++count;
+                atual = atual->proximo;
+            }
+        }
+        return count;
+    }
+
+    string buscar(int chave) const 
+    {
+        int indice = hashFunction(chave);
+        Node* atual = tabela_hash[indice];
+        
+        while (atual != nullptr) 
+        {
+            if (atual->chave == chave) 
+            {
+                return "Voo: " + to_string(atual->chave) + " | Destino: " + atual->valor;
+            }
+            atual = atual->proximo;
+        }
+        return "Voo não encontrado";
+    }
+
+    void imprimir() const 
+    {
+        cout << "\nTABELA HASH (Tamanho: " << tamanho_tabela << ")\n";
+        cout << "[NÚMERO][DESTINO]\n";
+        
+        for (int i = 0; i < tamanho_tabela; ++i) 
+        {
+            Node* atual = tabela_hash[i];
+            if (atual != nullptr) 
+            {
+                cout << "Posição: " << i << ": ";
+                while (atual != nullptr) 
+                {
+                    cout << "[" << atual->chave << "][" << atual->valor << "] ";
+                    atual = atual->proximo;
+                }
+                cout << endl;
+            }
+        }
+    }
+};
+
+
 string gerarNome() 
 {
 	vector<string> nomes = 
@@ -364,48 +555,118 @@ string gerarAssento() {
     return to_string(num) + letra;
 }
 
+
 int main() {
     srand((unsigned)time(nullptr));
 
     ListaPassageiros lista;
     TreeNode* root = nullptr;
 
-    // popula com 849 passageiros
+    string nome, cpf, codRes, assento;
+    int numVoo;
+
     for (int i = 0; i < 849; ++i) {
-        string nome     = gerarNome();
-        string cpf      = gerarCPF();
-        string codRes   = gerarCod();
-        int    numVoo   = gerarVoo();
-        string assento  = gerarAssento();
+        string nome = gerarNome();
+        string cpf = gerarCPF();
+        string codRes = gerarCod();
+        int numVoo = gerarVoo();
+        string assento = gerarAssento();
 
         Passageiro p(nome, cpf, codRes, numVoo, assento);
         lista.insert(p);
         root = (root ? root->insert(nome) : new TreeNode(nome));
     }
 
-    cout << "\n📋 Lista completa de passageiros:\n";
-    lista.imprimir();
 
-    // remoção interativa
-    cout << "\n\nDigite um nome completo para deletar: ";
-    string delNome;
-    getline(cin, delNome);
+    int tamanho_inicial;
+    cout << "Digite o tamanho inicial da tabela hash: ";
+    cin >> tamanho_inicial;
+    
+    Voos aeroporto(tamanho_inicial);
+    
+    while (true) {
+        cout << "\nMENU:\n";
+        cout << "1. Cadastrar voo\n";
+        cout << "2. Buscar voo\n";
+        cout << "3. Listar todos os voos\n";
+        cout << "4. Lista de todos os passageiros\n";
+        cout << "5. Lista os passageiros em ordem alfabética\n";
+        cout << "6. Adicionar passageiro\n";
+        cout << "7. Remover passageiro\n";
+        cout << "8. Sair\n";
+        cout << "Escolha: ";
+        
+        int opcao;
+        cin >> opcao;
+        
+        switch (opcao) {
+            case 1: {
+                aeroporto.cadastrarVoo();
+                break;
+            }
+            case 2: {
+                int numero;
+                cout << "Digite o número do voo: ";
+                cin >> numero;
+                cout << aeroporto.buscar(numero) << endl;
+                lista.imprimirPorVoo(numero);
+                break;
+            }
+            case 3: {
+                aeroporto.imprimir();
+                break;
+            }
+            case 4: {
+                cout << "\n📋 Lista completa de passageiros:\n";
+                lista.imprimir();
+                break;
+            }
+            case 5: {
+                cout << "\n Lista em ordem:\n";
+                root->inOrder();
+                break;
+            }
+            case 6: {
+                cin.ignore();
+                
+                cout << "Digite o nome completo: ";
+                getline(cin, nome);
+                cout << "Digite o CPF: ";
+                getline(cin, cpf);
+                cout << "Digite o código de reserva: ";
+                getline(cin, codRes);
+                cout << "Digite o número do voo: ";
+                cin >> numVoo;
+                cin.ignore();
+                cout << "Digite o número do assento: ";
+                getline(cin, assento);
 
-    if (root && root->search(delNome)) {
-        root = root->deleteNode(delNome);
-        cout << "\n\"" << delNome << "\" removido da árvore AVL.\n";
-        lista.deletarPorNome(delNome);
-    } else {
-        cout << "\nNome \"" << delNome << "\" não encontrado na árvore.\n";
+                Passageiro p(nome, cpf, codRes, numVoo, assento);
+                lista.insert(p);
+                root = (root ? root->insert(nome) : new TreeNode(nome));
+                break;
+            }
+            case 7: {
+                cin.ignore();
+                cout << "\nDigite um nome completo para deletar: ";
+                string delNome;
+                getline(cin, delNome);
+
+                if (root && root->search(delNome)) {
+                    root = root->deleteNode(delNome);
+                    cout << "\n\"" << delNome << "\" removido da árvore AVL.\n";
+                    lista.deletarPorNome(delNome);
+                } else {
+                    cout << "\nNome \"" << delNome << "\" não encontrado na árvore.\n";
+                }
+                break;
+            }
+            case 8: {
+                delete root;
+                return 0;
+            }
+            default:
+                cout << "Opção inválida!\n";
+        }
     }
-
-    // opcional: mostrar lista e árvore após remoção
-    cout << "\n📋 Lista após remoção:\n";
-    lista.imprimir();
-
-    cout << "\n Lista em ordem:\n";
-
-    root->inOrder();
-    delete root;
-    return 0;
 }
