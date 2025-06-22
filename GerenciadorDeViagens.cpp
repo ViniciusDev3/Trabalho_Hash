@@ -214,7 +214,7 @@ public:
     void inOrder() 
     {
         if (left) left->inOrder();
-        cout << data << " ";
+        cout << data << " \n";
         if (right) right->inOrder();
     }
 
@@ -403,6 +403,9 @@ int main() {
     cout << "\n📋 Lista após remoção:\n";
     lista.imprimir();
 
+    cout << "\n Lista em ordem:\n";
+
+    root->inOrder();
     delete root;
     return 0;
 }
