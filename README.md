@@ -1,6 +1,12 @@
-# Trabalho_Hash 🌳 Árvore AVL com Nomes Aleatórios em C++
+# ✈️ Gerenciador de Viagens
 
-Este projeto implementa uma **árvore AVL** em C++ para armazenar **nomes completos aleatórios** gerados a partir de listas de nomes e sobrenomes. A árvore permite **inserção, remoção, busca e impressão estruturada**.
+Projeto desenvolvido para simular um sistema de gerenciamento de passageiros e voos, utilizando três estruturas de dados fundamentais:
+
+- Lista Encadeada
+- Árvore AVL
+- Tabela Hash (em desenvolvimento)
+
+O objetivo é demonstrar a aplicação prática dessas estruturas no armazenamento, ordenação e busca de informações em um sistema de reservas aéreas.
 
 ---
 
