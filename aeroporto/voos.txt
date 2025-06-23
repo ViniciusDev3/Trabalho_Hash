@@ -1,0 +1,100 @@
+10001 Nova York
+10002 Londres
+10003 Paris
+10004 Tóquio
+10005 Sydney
+10006 Berlim
+10007 Roma
+10008 Madri
+10009 Lisboa
+10010 Rio de Janeiro
+10011 São Paulo
+10012 Toronto
+10013 Pequim
+10014 Moscou
+10015 Dubai
+10016 Bangcoc
+10017 Singapura
+10018 Los Angeles
+10019 Chicago
+10020 Miami
+10021 Nova York
+10022 Londres
+10023 Paris
+10024 Tóquio
+10025 Sydney
+10026 Berlim
+10027 Roma
+10028 Madri
+10029 Lisboa
+10030 Rio de Janeiro
+10031 São Paulo
+10032 Toronto
+10033 Pequim
+10034 Moscou
+10035 Dubai
+10036 Bangcoc
+10037 Singapura
+10038 Los Angeles
+10039 Chicago
+10040 Miami
+10041 Nova York
+10042 Londres
+10043 Paris
+10044 Tóquio
+10045 Sydney
+10046 Berlim
+10047 Roma
+10048 Madri
+10049 Lisboa
+10050 Rio de Janeiro
+10051 São Paulo
+10052 Toronto
+10053 Pequim
+10054 Moscou
+10055 Dubai
+10056 Bangcoc
+10057 Singapura
+10058 Los Angeles
+10059 Chicago
+10060 Miami
+10061 Nova York
+10062 Londres
+10063 Paris
+10064 Tóquio
+10065 Sydney
+10066 Berlim
+10067 Roma
+10068 Madri
+10069 Lisboa
+10070 Rio de Janeiro
+10071 São Paulo
+10072 Toronto
+10073 Pequim
+10074 Moscou
+10075 Dubai
+10076 Bangcoc
+10077 Singapura
+10078 Los Angeles
+10079 Chicago
+10080 Miami
+10081 Nova York
+10082 Londres
+10083 Paris
+10084 Tóquio
+10085 Sydney
+10086 Berlim
+10087 Roma
+10088 Madri
+10089 Lisboa
+10090 Rio de Janeiro
+10091 São Paulo
+10092 Toronto
+10093 Pequim
+10094 Moscou
+10095 Dubai
+10096 Bangcoc
+10097 Singapura
+10098 Los Angeles
+10099 Chicago
+10100 Miami
