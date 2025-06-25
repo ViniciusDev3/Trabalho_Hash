@@ -1,6 +1,9 @@
 #include <iostream>
 #include <string>
+#include <fstream>
+#include <sstream>
 #include <vector>
+#include <map>
 
 using namespace std;
 
@@ -9,11 +12,11 @@ private:
     string nome;
     string cpf;
     string codReserva;
-    int numVoo;
+    string numVoo;
     string assento;
 
 public:
-    Passageiro(string nome, string cpf, string codReserva, int numVoo, string assento)
+    Passageiro(string nome, string cpf, string codReserva, string numVoo, string assento)
     : nome(nome), cpf(cpf), codReserva(codReserva), numVoo(numVoo), assento(assento) {}
 
     void imprimir() const {
@@ -30,7 +33,7 @@ public:
         return nome;
     }
 
-    int getNumVoo() const {
+    string getNumVoo() const {
         return numVoo;
     }
 
@@ -100,7 +103,7 @@ public:
         cout << "Passageiro com Nome " << nome << " não encontrado.\n";
     }
 
-    void imprimirPorVoo(int numeroVoo) const {
+    void imprimirPorVoo(string numeroVoo) const {
         No* atual = head;
         bool encontrou = false;
 
@@ -404,20 +407,28 @@ public:
     void cadastrarVoo() 
     {
         int numero_voo;
-        string destino;
+        char destino[30];
 
-        cout << "Digite o NÚMERO do voo: ";
-        cin >> numero_voo;
-        cout << "Digite o DESTINO do voo: ";
-        cin.ignore();
-        getline(cin, destino);
+        FILE* lista_voos = fopen("voos.txt", "r");
 
-        inserir(numero_voo, destino);
+        if (lista_voos == nullptr)
+        {
+            perror("Erro ao abrir o arquivo");
+            return;
+        }
+
+        while(fscanf(lista_voos, "%d %99[^\n]", &numero_voo, destino) == 2) 
+        {
+            inserir(numero_voo, string(destino));
+        }
+
+        cout << "Voos Cadastrados com sucesso!" << endl;
+        
+        fclose(lista_voos);
     }
 
     void inserir(int chave, const string& valor) 
     {
-        // redimensiona se fator de carga > 0.7
         if (contarElementos() > 0.7 * tamanho_tabela) 
         {
             redimensionar(tamanho_tabela * 2);
@@ -425,7 +436,6 @@ public:
         
         int indice = hashFunction(chave);
         
-        // verifica se a chave já existe
         Node* atual = tabela_hash[indice];
         while (atual != nullptr) 
         {
@@ -438,10 +448,30 @@ public:
             atual = atual->proximo;
         }
         
-        // insere novo nó no início da lista
         Node* novo = new Node(chave, valor);
         novo->proximo = tabela_hash[indice];
         tabela_hash[indice] = novo;
+    }
+
+    bool deletarVoo(int chave) {
+        int indice = hashFunction(chave);
+        Node* atual = tabela_hash[indice];
+        Node* anterior = nullptr;
+
+        while (atual != nullptr) {
+            if (atual->chave == chave) {
+                if (anterior == nullptr) {
+                    tabela_hash[indice] = atual->proximo;
+                } else {
+                    anterior->proximo = atual->proximo;
+                }
+                delete atual;
+                return true;
+            }
+            anterior = atual;
+            atual = atual->proximo;
+        }
+        return false;
     }
     
     int contarElementos() const 
@@ -498,55 +528,8 @@ public:
 };
 
 
-string gerarNome() 
-{
-	vector<string> nomes = 
-  {
-    "João", "Ana", "Carlos", "Maria", "Lucas", "Érica", "Bruno", "Juliana", "Pedro", "Camila",
-    "Gustavo", "Larissa", "Felipe", "Aline", "Ricardo", "Patrícia", "André", "Renata", "Tiago", "Gabriela",
-    "Daniel", "Vanessa", "Rafael", "Natália", "Eduardo", "Carla", "Leonardo", "Tatiane", "Rodrigo", "Marina",
-    "Fernando", "Érica", "Marcelo", "Sabrina", "Igor", "Viviane", "Fábio", "Letícia", "Alexandre", "Nicole",
-    "Henrique", "Rafaela", "Matheus", "Débora", "Diego", "Jéssica", "Murilo", "Lívia", "Thiago", "Cíntia",
-    "Vinícius", "Raquel", "Caio", "Elaine", "Alan", "Bárbara", "Heitor", "Daniela", "Otávio", "Yasmin",
-    "Maurício", "Roberta", "Paulo", "Caroline", "Antônio", "Sônia", "Joaquim", "Gisele", "Mateus", "Clarissa",
-    "Alana", "Leandro", "Tatiana", "Rebeca", "Jonas", "Nádia", "Wilson", "Monique", "Vagner", "Priscila",
-    "Rogério", "Isabela", "Artur", "Manuela", "Luís", "Lorena", "Benjamin", "Bianca", "Hugo", "Helena",
-    "Cristiano", "Lúcia", "Armando", "Elaine", "Caíque", "Sandra", "Jonathan", "Celina", "Nilson", "Tatiane"
-  };
-
-    vector<string> sobrenomes = 
-    {
-    	"Silva", "Souza", "Pereira", "Oliveira", "Costa", "Fernandes", "Martins", "Carvalho", "Ribeiro", "Barros",
-      "Dias", "Almeida", "Gomes", "Pinto", "Araújo", "Teixeira", "Castro", "Nunes", "Ramos", "Melo",
-      "Monteiro", "Pires", "Vieira", "Correia", "Freitas", "Moraes", "Antunes", "Cunha", "Leal", "Batista",
-      "Dantas", "Fonseca", "Tavares", "Duarte", "Cardoso", "Macedo", "Santana", "Braga", "Faria", "Lopes",
-      "Barcellos", "Neves", "Rezende", "Soares", "Peixoto", "Moura", "Assis", "Henriques", "Magalhães", "Azevedo",
-      "Amorim", "Nóbrega", "Mendes", "Prado", "Guimarães", "Andrade", "Freire", "Sales", "Pimenta", "Borges",
-      "Godoy", "Rangel", "Torres", "Castilho", "Aguiar", "Rezende", "Xavier", "Matos", "Meireles", "Lacerda",
-      "Medeiros", "Valente", "Aragão", "Teles", "Santos", "Brandão", "Lima", "Serpa", "Moreira", "Ferraz",
-      "Novaes", "Furtado", "Cavalcanti", "Galvão", "Abreu", "Vasconcelos", "Bezerra", "Campos", "Queiroz", "Nogueira",
-      "Machado", "Camargo", "Cavalcante", "Pinheiro", "Bittencourt", "Lessa", "Maranhão", "Mota", "Vieira", "Beltrão"
-    };
-
-	int i = rand() % nomes.size();
-	int j = rand() % sobrenomes.size();
-
-	return nomes[i] + " " + " " + sobrenomes[j];
-}
-
-string gerarCPF() {
-    string cpf;
-    for (int i = 0; i < 11; ++i)
-        cpf += char('0' + rand()%10);
-    return cpf;
-}
-
 string gerarCod() {
     return "R" + to_string(rand()%10000);
-}
-
-int gerarVoo() {
-    return 100 + rand()%900;
 }
 
 string gerarAssento() {
@@ -562,26 +545,52 @@ int main() {
     ListaPassageiros lista;
     TreeNode* root = nullptr;
 
-    string nome, cpf, codRes, assento;
-    int numVoo;
+    string nome, cpf, codRes, numVoo, assento;
 
-    for (int i = 0; i < 849; ++i) {
-        string nome = gerarNome();
-        string cpf = gerarCPF();
-        string codRes = gerarCod();
-        int numVoo = gerarVoo();
-        string assento = gerarAssento();
+    int tamanho_inicial;
+    cout << "Digite o tamanho inicial da tabela hash: ";
+    cin >> tamanho_inicial;
+    
+    string nomeArquivo;
+
+    if (tamanho_inicial <= 2) {
+        nomeArquivo = "passageiros_500.txt";
+    } else if (tamanho_inicial > 2 && tamanho_inicial <= 3) {
+        nomeArquivo = "passageiros_800.txt";
+    } else if (tamanho_inicial > 3 && tamanho_inicial <= 4) {
+        nomeArquivo = "passageiros_1000.txt";
+    } else if (tamanho_inicial > 4 && tamanho_inicial <= 20) {
+        nomeArquivo = "passageiros_5000.txt";
+    } else if (tamanho_inicial > 20 && tamanho_inicial <= 40) {
+        nomeArquivo = "passageiros_10000.txt";
+    } else {
+        nomeArquivo = "passageiros_10000.txt";
+    }
+
+    ifstream listaP(nomeArquivo);
+    cout << nomeArquivo << endl;
+    if (!listaP.is_open()) {
+        cerr << "Erro ao abrir o arquivo!" << endl;
+        return 1;
+    }
+
+    string linha;
+    while (getline(listaP, linha)) {
+
+        stringstream ss(linha);
+        getline(ss, nome, ',');
+        getline(ss, cpf, ',');
+        getline(ss, codRes, ',');
+        getline(ss, numVoo, ',');
+        getline(ss, assento, ',');
 
         Passageiro p(nome, cpf, codRes, numVoo, assento);
         lista.insert(p);
         root = (root ? root->insert(nome) : new TreeNode(nome));
     }
 
+    listaP.close();
 
-    int tamanho_inicial;
-    cout << "Digite o tamanho inicial da tabela hash: ";
-    cin >> tamanho_inicial;
-    
     Voos aeroporto(tamanho_inicial);
     
     while (true) {
@@ -589,11 +598,12 @@ int main() {
         cout << "1. Cadastrar voo\n";
         cout << "2. Buscar voo\n";
         cout << "3. Listar todos os voos\n";
-        cout << "4. Lista de todos os passageiros\n";
-        cout << "5. Lista os passageiros em ordem alfabética\n";
-        cout << "6. Adicionar passageiro\n";
-        cout << "7. Remover passageiro\n";
-        cout << "8. Sair\n";
+        cout << "4. Deletar voo\n";
+        cout << "5. Lista de todos os passageiros\n";
+        cout << "6. Lista os passageiros em ordem alfabética\n";
+        cout << "7. Adicionar passageiro\n";
+        cout << "8. Remover passageiro\n";
+        cout << "9. Sair\n";
         cout << "Escolha: ";
         
         int opcao;
@@ -605,11 +615,19 @@ int main() {
                 break;
             }
             case 2: {
-                int numero;
-                cout << "Digite o número do voo: ";
-                cin >> numero;
-                cout << aeroporto.buscar(numero) << endl;
-                lista.imprimirPorVoo(numero);
+                string numVooStr;
+                cout << "Digite o número do voo (ex: LL1234): ";
+                cin >> numVooStr;
+
+                // Extrair o número da string (removendo o prefixo "LL")
+                int chaveHash = stoi(numVooStr.substr(2));
+
+                // Buscar e exibir na hash
+                string resultado = aeroporto.buscar(chaveHash);
+                cout << resultado << endl;
+
+                // Exibir passageiros do voo
+                lista.imprimirPorVoo(numVooStr);
                 break;
             }
             case 3: {
@@ -617,16 +635,33 @@ int main() {
                 break;
             }
             case 4: {
+                int voo;
+                cout << "\nDigite o numero do voo que deseja excluir: ";
+                cin >> voo;
+                
+                if (aeroporto.buscar(voo) == "Voo não encontrado") {
+                    cout << "Voo " << voo << " não encontrado.\n";
+                    break;
+                }
+                
+                if (aeroporto.deletarVoo(voo)) {
+                    cout << "Voo " << voo << " removido com sucesso.\n";
+                } else {
+                    cout << "Erro ao remover voo " << voo << ".\n";
+                }
+                break;
+            }
+            case 5: {
                 cout << "\n📋 Lista completa de passageiros:\n";
                 lista.imprimir();
                 break;
             }
-            case 5: {
+            case 6: {
                 cout << "\n Lista em ordem:\n";
                 root->inOrder();
                 break;
             }
-            case 6: {
+            case 7: {
                 cin.ignore();
                 
                 cout << "Digite o nome completo: ";
@@ -646,7 +681,7 @@ int main() {
                 root = (root ? root->insert(nome) : new TreeNode(nome));
                 break;
             }
-            case 7: {
+            case 8: {
                 cin.ignore();
                 cout << "\nDigite um nome completo para deletar: ";
                 string delNome;
@@ -661,7 +696,7 @@ int main() {
                 }
                 break;
             }
-            case 8: {
+            case 9: {
                 delete root;
                 return 0;
             }
