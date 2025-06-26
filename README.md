@@ -44,13 +44,17 @@ A árvore AVL é utilizada para armazenar e ordenar os **nomes dos passageiros**
 
 ---
 
-### ✅ Tabela Hash (em desenvolvimento)
+### ✅ Tabela Hash 
 
-A tabela hash será usada para armazenar os **voos**, onde a chave será o número do voo ou o destino.
+A tabela hash será usada para armazenar os **voos**, onde a chave será o número do voo.
 
 **Cada voo armazenado conterá**:
 - Número do voo (chave)
 - Destino
-- Lista encadeada de passageiros
+
+**Funções principais**:
+- Cadastrar voo
+- Buscar voo
+- Deletar voo
 
 > 💡 Estrutura ideal para buscas rápidas de voos por chave única.
