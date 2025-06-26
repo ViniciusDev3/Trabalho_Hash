@@ -393,7 +393,6 @@ public:
         cin >> destino;
 
         inserir(numero_voo, string(destino));
-        cout << "Voo cadastrado com sucesso!" << endl;
     }
     
     int limite = 0;
@@ -423,7 +422,6 @@ public:
             if(cont > tamanho)
             {
                 limite++;
-                cout << "\n Voos Cadastrados com sucesso!" << endl;
                 fclose(lista_voos);
                 return;
             }
@@ -439,10 +437,12 @@ public:
         {
             if (atual->chave == chave) 
             {
+		cont--; //p nao contar como +1 voo cadastrado
                 atual->valor = valor;
                 cout << "Voo " << chave << " atualizado.\n";
                 return;
             }
+	    cout << "\n Voos Cadastrados com sucesso!" << endl;
             atual = atual->proximo;
         }
         
