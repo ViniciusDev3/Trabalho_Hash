@@ -48,81 +48,6 @@ public:
     No(Passageiro pessoal): pessoal(pessoal), next(nullptr) {}
 };
 
-class ListaPassageiros {
-private:
-    No* head;       
-    No* tail;
-        
-public:
-    ListaPassageiros(): head(nullptr), tail(nullptr) {}
-
-    void insert(Passageiro pessoa) {
-        No* newDate = new No(pessoa);
-        if (!head) {
-            head = tail = newDate;
-        } else {
-            tail->next = newDate;
-            tail = newDate;
-        }
-    }
-
-    void imprimir() const {
-        No* atual = head;
-        while (atual) {
-            atual->pessoal.imprimir();
-            atual = atual->next;
-        }
-    }
-
-    void deletarPorNome(const string& nome) {
-    if (!head) {
-        cout << "A lista está vazia.\n";
-        return;
-    }
-
-    No* atual = head;
-    No* anterior = nullptr;
-
-        while (atual) {
-            if (atual->pessoal.getNome() == nome) {
-                if (atual == head) {
-                    head = head->next;
-                    if (atual == tail) tail = nullptr; // lista ficou vazia
-                } else {
-                    anterior->next = atual->next;
-                    if (atual == tail) tail = anterior;
-                }
-                delete atual;
-                cout << "Passageiro com Nome " << nome << " removido com sucesso.\n";
-                return;
-            }
-            anterior = atual;
-            atual = atual->next;
-        }
-
-        cout << "Passageiro com Nome " << nome << " não encontrado.\n";
-    }
-
-    void imprimirPorVoo(string numeroVoo) const {
-        No* atual = head;
-        bool encontrou = false;
-
-        cout << "\n📋 Passageiros do voo " << numeroVoo << ":\n";
-        while (atual) {
-            if (atual->pessoal.getNumVoo() == numeroVoo) {
-                atual->pessoal.imprimir();
-                encontrou = true;
-            }
-            atual = atual->next;
-        }
-
-        if (!encontrou) {
-            cout << "Nenhum passageiro encontrado para esse voo.\n";
-        }
-    }
-
-};
-
 class TreeNode 
 {
 private:
@@ -332,6 +257,86 @@ public:
             delete right;
         }
     }	
+};
+
+class ListaPassageiros {
+private:
+    No* head;       
+    No* tail;
+        
+public:
+    ListaPassageiros(): head(nullptr), tail(nullptr) {}
+
+    void insert(Passageiro pessoa, TreeNode*& rootAVL) {
+        No* newDate = new No(pessoa);
+        if (!head) {
+            head = tail = newDate;
+        } else {
+            tail->next = newDate;
+            tail = newDate;
+        }
+
+        if (rootAVL)
+            rootAVL = rootAVL->insert(pessoa.getNome());
+        else
+            rootAVL = new TreeNode(pessoa.getNome());
+    }
+
+    void imprimir() const {
+        No* atual = head;
+        while (atual) {
+            atual->pessoal.imprimir();
+            atual = atual->next;
+        }
+    }
+
+    void deletarPorNome(const string& nome) {
+    if (!head) {
+        cout << "A lista está vazia.\n";
+        return;
+    }
+
+    No* atual = head;
+    No* anterior = nullptr;
+
+        while (atual) {
+            if (atual->pessoal.getNome() == nome) {
+                if (atual == head) {
+                    head = head->next;
+                    if (atual == tail) tail = nullptr; // lista ficou vazia
+                } else {
+                    anterior->next = atual->next;
+                    if (atual == tail) tail = anterior;
+                }
+                delete atual;
+                cout << "Passageiro com Nome " << nome << " removido com sucesso.\n";
+                return;
+            }
+            anterior = atual;
+            atual = atual->next;
+        }
+
+        cout << "Passageiro com Nome " << nome << " não encontrado.\n";
+    }
+
+    void imprimirPorVoo(string numeroVoo) const {
+        No* atual = head;
+        bool encontrou = false;
+
+        cout << "\n📋 Passageiros do voo " << numeroVoo << ":\n";
+        while (atual) {
+            if (atual->pessoal.getNumVoo() == numeroVoo) {
+                atual->pessoal.imprimir();
+                encontrou = true;
+            }
+            atual = atual->next;
+        }
+
+        if (!encontrou) {
+            cout << "Nenhum passageiro encontrado para esse voo.\n";
+        }
+    }
+
 };
 
 struct Node {
@@ -585,8 +590,7 @@ int main() {
         getline(ss, assento, ',');
 
         Passageiro p(nome, cpf, codRes, numVoo, assento);
-        lista.insert(p);
-        root = (root ? root->insert(nome) : new TreeNode(nome));
+        lista.insert(p, root);
     }
 
     listaP.close();
@@ -659,6 +663,7 @@ int main() {
             case 6: {
                 cout << "\n Lista em ordem:\n";
                 root->inOrder();
+                root->printTree();
                 break;
             }
             case 7: {
@@ -677,8 +682,8 @@ int main() {
                 getline(cin, assento);
 
                 Passageiro p(nome, cpf, codRes, numVoo, assento);
-                lista.insert(p);
-                root = (root ? root->insert(nome) : new TreeNode(nome));
+                lista.insert(p, root);
+
                 break;
             }
             case 8: {
