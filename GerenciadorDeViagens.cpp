@@ -4,6 +4,7 @@
 #include <sstream>
 #include <vector>
 #include <map>
+#include <set>
 
 using namespace std;
 
@@ -13,10 +14,10 @@ private:
     string cpf;
     string codReserva;
     int numVoo;
-    string assento;
+    int assento;
 
 public:
-    Passageiro(string nome, string cpf, string codReserva, int numVoo, string assento)
+    Passageiro(string nome, string cpf, string codReserva, int numVoo, int assento)
     : nome(nome), cpf(cpf), codReserva(codReserva), numVoo(numVoo), assento(assento) {}
 
     void imprimir() const {
@@ -519,6 +520,9 @@ public:
     }
 };
 
+set<string> reservasUsadas; 
+set<string> cpfsUsados;
+set<pair<int, int>> assentosOcupados;
 
 string gerarCod() {
     string cod;
@@ -536,60 +540,18 @@ string gerarAssento() {
     return to_string(num);
 }
 
-
 int main() {
     srand((unsigned)time(nullptr));
 
     ListaPassageiros lista;
     TreeNode* root = nullptr;
 
-    string nome, cpf, codRes, assento;
-    int numVoo;
+    string nome, cpf, codRes;
+    int numVoo , assento;
 
     int tamanho;
     cout << "Digite o tamanho inicial da tabela hash: ";
     cin >> tamanho;
-    
-    string nomeArquivo;
-
-    if (tamanho <= 2) {
-        nomeArquivo = "passageiros_500.txt";
-    } else if (tamanho > 2 && tamanho <= 3) {
-        nomeArquivo = "passageiros_800.txt";
-    } else if (tamanho > 3 && tamanho <= 4) {
-        nomeArquivo = "passageiros_1000.txt";
-    } else if (tamanho > 4 && tamanho <= 20) {
-        nomeArquivo = "passageiros_5000.txt";
-    } else if (tamanho > 20 && tamanho<= 40) {
-        nomeArquivo = "passageiros_10000.txt";
-    } else {
-        nomeArquivo = "passageiros_10000.txt";
-    }
-
-    ifstream listaP(nomeArquivo);
-    cout << nomeArquivo << endl;
-    if (!listaP.is_open()) {
-        cerr << "Erro ao abrir o arquivo!" << endl;
-        return 1;
-    }
-
-    string linha;
-    string  numVooStr;
-    while (getline(listaP, linha)) {
-        
-        stringstream ss(linha);
-        getline(ss, nome, ',');
-        getline(ss, cpf, ',');
-        getline(ss, codRes, ',');
-        
-        getline(ss, numVooStr, ',');
-        getline(ss, assento, ',');
-        int numVoo = atoi(numVooStr.c_str());
-        Passageiro p(nome, cpf, codRes, numVoo, assento);
-        lista.insert(p, root);
-    }
-
-    listaP.close();
 
     Voos aeroporto(tamanho);
     
@@ -625,6 +587,50 @@ int main() {
                     aeroporto.cadastrarVooManual(tamanho);
                 }else{
                     aeroporto.cadastrarVooArquivo(tamanho);
+                    string nomeArquivo;
+
+                    if (tamanho <= 2) {
+                        nomeArquivo = "passageiros_500.txt";
+                    } else if (tamanho > 2 && tamanho <= 3) {
+                        nomeArquivo = "passageiros_800.txt";
+                    } else if (tamanho > 3 && tamanho <= 4) {
+                        nomeArquivo = "passageiros_1000.txt";
+                    } else if (tamanho > 4 && tamanho <= 20) {
+                        nomeArquivo = "passageiros_5000.txt";
+                    } else if (tamanho > 20 && tamanho<= 40) {
+                        nomeArquivo = "passageiros_10000.txt";
+                    } else {
+                        nomeArquivo = "passageiros_10000.txt";
+                    }
+
+                    ifstream listaP(nomeArquivo);
+                    cout << nomeArquivo << endl;
+                    if (!listaP.is_open()) {
+                        cerr << "Erro ao abrir o arquivo!" << endl;
+                        return 1;
+                    }
+
+                    string linha;
+                    string numVooStr;
+                    string assentoStr;
+                    while (getline(listaP, linha)) {
+                        
+                        stringstream ss(linha);
+                        getline(ss, nome, ',');
+                        getline(ss, cpf, ',');
+                        getline(ss, codRes, ',');                        
+                        getline(ss, numVooStr, ',');
+                        getline(ss, assentoStr, ',');
+
+                        int assento = atoi(assentoStr.c_str());
+                        int numVoo = atoi(numVooStr.c_str());
+                        Passageiro p(nome, cpf, codRes, numVoo, assento);
+                        lista.insert(p, root);
+                        cpfsUsados.insert(cpf);
+                        assentosOcupados.insert({numVoo, assento});
+                    }
+
+                    listaP.close();
                 }
                 
                 break;
@@ -678,13 +684,33 @@ int main() {
                 getline(cin, nome);
                 cout << "Digite o CPF: ";
                 getline(cin, cpf);
-                cout << "Digite o código de reserva: ";
-                getline(cin, codRes);
+                while (cpfsUsados.count(cpf)) {
+                    cout << "CPF já utilizado. Digite um CPF diferente: ";
+                    getline(cin, cpf);
+                }
+                cpfsUsados.insert(cpf);
+
+                do {
+                    codRes = gerarCod();
+                } while (reservasUsadas.count(codRes) > 0);
+
+                reservasUsadas.insert(codRes);
+                cout << "Seu código de reserva é: " << codRes << endl;
+
                 cout << "Digite o número do voo: ";
                 cin >> numVoo;
                 cin.ignore();
+
                 cout << "Digite o número do assento: ";
-                getline(cin, assento);
+                cin >> assento;
+                cin.ignore();
+
+                while (assentosOcupados.count({numVoo, assento})) {
+                    cout << "Assento já ocupado. Digite outro número de assento: ";
+                    cin >> assento;
+                    cin.ignore();
+                }   
+                assentosOcupados.insert({numVoo, assento});
 
                 Passageiro p(nome, cpf, codRes, numVoo, assento);
                 lista.insert(p, root);
