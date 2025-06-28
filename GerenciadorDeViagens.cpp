@@ -12,11 +12,11 @@ private:
     string nome;
     string cpf;
     string codReserva;
-    string numVoo;
+    int numVoo;
     string assento;
 
 public:
-    Passageiro(string nome, string cpf, string codReserva, string numVoo, string assento)
+    Passageiro(string nome, string cpf, string codReserva, int numVoo, string assento)
     : nome(nome), cpf(cpf), codReserva(codReserva), numVoo(numVoo), assento(assento) {}
 
     void imprimir() const {
@@ -33,7 +33,7 @@ public:
         return nome;
     }
 
-    string getNumVoo() const {
+    int getNumVoo() const {
         return numVoo;
     }
 
@@ -319,7 +319,7 @@ public:
         cout << "Passageiro com Nome " << nome << " não encontrado.\n";
     }
 
-    void imprimirPorVoo(string numeroVoo) const {
+    void imprimirPorVoo(int numeroVoo) const {
         No* atual = head;
         bool encontrou = false;
 
@@ -357,32 +357,6 @@ private:
         return chave % tamanho_tabela;
     }
     
-    void redimensionar(int novo_tamanho) 
-    {
-        Node** nova_tabela = new Node*[novo_tamanho]();  
-        
-        //reinsere todos os elementos na nova tabela
-        for (int i = 0; i < tamanho_tabela; ++i) 
-        {
-            Node* atual = tabela_hash[i];
-            while (atual != nullptr) 
-            {
-                Node* proximo = atual->proximo;
-                int novo_indice = hashFunction(atual->chave) % novo_tamanho;
-                
-                atual->proximo = nova_tabela[novo_indice];
-                nova_tabela[novo_indice] = atual;
-                
-                atual = proximo;
-            }
-        }
-        
-        //libera a tabela antiga e atualiza
-        delete[] tabela_hash;
-        tabela_hash = nova_tabela;
-        tamanho_tabela = novo_tamanho;
-    }
-    
     void limparTabela() 
     {
         for (int i = 0; i < tamanho_tabela; ++i) 
@@ -408,13 +382,34 @@ public:
         limparTabela();
         delete[] tabela_hash;
     }
+
+    int cont = 0;
+    void cadastrarVooManual(int &tamanho)
+    {
+        int numero_voo;
+        char destino[30];
+        cont++;
+
+        if(cont > tamanho){
+            cout << "Limite de voos cadastrados atingidos" << endl;
+            return;
+        }
+
+        cout << "\nDigite o número do destino que deseja cadastrar: ";
+        cin >> numero_voo;
+        cout << "Digite o nome do destino que deseja cadastrar: ";
+        cin >> destino;
+
+        inserir(numero_voo, string(destino));
+    }
     
-    void cadastrarVoo() 
+    int limite = 0;
+    void cadastrarVooArquivo(int &tamanho) 
     {
         int numero_voo;
         char destino[30];
 
-        FILE* lista_voos = fopen("voos.txt", "r");
+        FILE* lista_voos = fopen("voos1.txt", "r");
 
         if (lista_voos == nullptr)
         {
@@ -422,23 +417,28 @@ public:
             return;
         }
 
+        if(limite == 1)
+        {
+            cout << "Limite de voos cadastrados atingidos" << endl;
+            return;
+        }
+
         while(fscanf(lista_voos, "%d %99[^\n]", &numero_voo, destino) == 2) 
         {
             inserir(numero_voo, string(destino));
+            cont++;
+            if(cont >= tamanho)
+            {
+                limite++;
+                fclose(lista_voos);
+                cout << "\nVoos Cadastrados com sucesso!" << endl;
+                return;
+            }
         }
-
-        cout << "Voos Cadastrados com sucesso!" << endl;
-        
-        fclose(lista_voos);
     }
 
     void inserir(int chave, const string& valor) 
     {
-        if (contarElementos() > 0.7 * tamanho_tabela) 
-        {
-            redimensionar(tamanho_tabela * 2);
-        }
-        
         int indice = hashFunction(chave);
         
         Node* atual = tabela_hash[indice];
@@ -446,10 +446,12 @@ public:
         {
             if (atual->chave == chave) 
             {
+		        cont--; //p nao contar como +1 voo cadastrado
                 atual->valor = valor;
                 cout << "Voo " << chave << " atualizado.\n";
                 return;
             }
+	    
             atual = atual->proximo;
         }
         
@@ -477,21 +479,6 @@ public:
             atual = atual->proximo;
         }
         return false;
-    }
-    
-    int contarElementos() const 
-    {
-        int count = 0;
-        for (int i = 0; i < tamanho_tabela; ++i) 
-        {
-            Node* atual = tabela_hash[i];
-            while (atual != nullptr) 
-            {
-                ++count;
-                atual = atual->proximo;
-            }
-        }
-        return count;
     }
 
     string buscar(int chave) const 
@@ -523,7 +510,7 @@ public:
                 cout << "Posição: " << i << ": ";
                 while (atual != nullptr) 
                 {
-                    cout << "[" << atual->chave << "][" << atual->valor << "] ";
+                    cout << "[" << atual->chave << "][" << atual->valor << "]";
                     atual = atual->proximo;
                 }
                 cout << endl;
@@ -534,13 +521,19 @@ public:
 
 
 string gerarCod() {
-    return "R" + to_string(rand()%10000);
+    string cod;
+    cod += char('A' + rand() % 26);
+    cod += char('A' + rand() % 26);
+    cod += char('0' + rand() % 10);
+    cod += char('0' + rand() % 10);
+    cod += char('A' + rand() % 26);
+    cod += char('0' + rand() % 10);
+    return cod;
 }
 
 string gerarAssento() {
-    char letra = 'A' + rand()%6;
-    int num = 1 + rand()%30;
-    return to_string(num) + letra;
+    int num = 1 + rand()%249;
+    return to_string(num);
 }
 
 
@@ -550,23 +543,24 @@ int main() {
     ListaPassageiros lista;
     TreeNode* root = nullptr;
 
-    string nome, cpf, codRes, numVoo, assento;
+    string nome, cpf, codRes, assento;
+    int numVoo;
 
-    int tamanho_inicial;
+    int tamanho;
     cout << "Digite o tamanho inicial da tabela hash: ";
-    cin >> tamanho_inicial;
+    cin >> tamanho;
     
     string nomeArquivo;
 
-    if (tamanho_inicial <= 2) {
+    if (tamanho <= 2) {
         nomeArquivo = "passageiros_500.txt";
-    } else if (tamanho_inicial > 2 && tamanho_inicial <= 3) {
+    } else if (tamanho > 2 && tamanho <= 3) {
         nomeArquivo = "passageiros_800.txt";
-    } else if (tamanho_inicial > 3 && tamanho_inicial <= 4) {
+    } else if (tamanho > 3 && tamanho <= 4) {
         nomeArquivo = "passageiros_1000.txt";
-    } else if (tamanho_inicial > 4 && tamanho_inicial <= 20) {
+    } else if (tamanho > 4 && tamanho <= 20) {
         nomeArquivo = "passageiros_5000.txt";
-    } else if (tamanho_inicial > 20 && tamanho_inicial <= 40) {
+    } else if (tamanho > 20 && tamanho<= 40) {
         nomeArquivo = "passageiros_10000.txt";
     } else {
         nomeArquivo = "passageiros_10000.txt";
@@ -580,22 +574,24 @@ int main() {
     }
 
     string linha;
+    string  numVooStr;
     while (getline(listaP, linha)) {
-
+        
         stringstream ss(linha);
         getline(ss, nome, ',');
         getline(ss, cpf, ',');
         getline(ss, codRes, ',');
-        getline(ss, numVoo, ',');
+        
+        getline(ss, numVooStr, ',');
         getline(ss, assento, ',');
-
+        int numVoo = atoi(numVooStr.c_str());
         Passageiro p(nome, cpf, codRes, numVoo, assento);
         lista.insert(p, root);
     }
 
     listaP.close();
 
-    Voos aeroporto(tamanho_inicial);
+    Voos aeroporto(tamanho);
     
     while (true) {
         cout << "\nMENU:\n";
@@ -615,23 +611,33 @@ int main() {
         
         switch (opcao) {
             case 1: {
-                aeroporto.cadastrarVoo();
+                cout << "deseja cadastrar o voo manualmente (1) ou ler de um arquivo (2)? " << endl; 
+                int opcaoCadastro;
+                cin >> opcaoCadastro;
+
+                if(opcaoCadastro != 1 && opcaoCadastro != 2)
+                {
+                    cout << "opção inválida! digite (1) manualmente e (2) por leitura de arquivo" << endl;
+                    cin >> opcaoCadastro;
+                }
+
+                if(opcaoCadastro == 1){
+                    aeroporto.cadastrarVooManual(tamanho);
+                }else{
+                    aeroporto.cadastrarVooArquivo(tamanho);
+                }
+                
                 break;
             }
             case 2: {
-                string numVooStr;
-                cout << "Digite o número do voo (ex: LL1234): ";
-                cin >> numVooStr;
-
-                // Extrair o número da string (removendo o prefixo "LL")
-                int chaveHash = stoi(numVooStr.substr(2));
-
-                // Buscar e exibir na hash
-                string resultado = aeroporto.buscar(chaveHash);
-                cout << resultado << endl;
-
-                // Exibir passageiros do voo
-                lista.imprimirPorVoo(numVooStr);
+                int numero;
+                cout << "\nDigite o número do voo: ";
+                cin >> numero;
+                cout << aeroporto.buscar(numero) << endl;
+                if (aeroporto.buscar(numero) == "Voo não encontrado"){
+                    break;
+                }
+                lista.imprimirPorVoo(numero);
                 break;
             }
             case 3: {
@@ -663,7 +669,6 @@ int main() {
             case 6: {
                 cout << "\n Lista em ordem:\n";
                 root->inOrder();
-                root->printTree();
                 break;
             }
             case 7: {

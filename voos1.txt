@@ -1,0 +1,100 @@
+1264 Porto Alegre
+1273 Barcelona
+1328 Toronto
+1428 Philadelphia
+1447 Tokyo
+1561 Bangladesh
+1638 Recife
+1749 Johannesburg
+1790 Johannesburg
+1825 Philadelphia
+1944 Manchester
+1956 Oslo
+1967 San Jose
+2033 Montevideo
+2078 Lagos
+2149 Paris
+2305 Brisbane
+2356 Bangladesh
+2555 Mexico City
+2786 Mumbai
+2934 Los Angeles
+3044 Johannesburg
+3385 Jeddah
+3480 Seattle
+3624 San Jose
+3626 Geneva
+3792 Mumbai
+3949 Vienna
+3951 London
+4012 Rome
+4321 Salvador
+4456 Abu Dhabi
+4462 Manchester
+4534 Manchester
+4546 Seoul
+4567 Abu Dhabi
+4619 Panama City
+4737 Toronto
+4982 Barcelona
+5023 Baghdad
+5025 Curitiba
+5123 Bogota
+5124 Chicago
+5240 Auckland
+5264 Orlando
+5275 Melbourne
+5290 Bangkok
+5330 Orlando
+5491 Atlanta
+5678 Singapore
+5689 Washington
+5949 Miami
+6023 Porto Alegre
+6088 Lisbon
+6090 Beijing
+6094 Brasilia
+6150 London
+6218 Amsterdam
+6421 Rio de Janeiro
+6427 New York
+6633 Athens
+6661 Melbourne
+6666 Oslo
+6970 Brisbane
+6987 Vancouver
+6988 Vienna
+7214 Los Angeles
+7220 Porto Alegre
+7222 Mumbai
+7271 Kuwait City
+7291 Panama City
+7373 Zurich
+7629 Recife
+7673 Manama
+7879 Beirut
+7881 Miami
+8037 Jeddah
+8157 Houston
+8232 Bangkok
+8260 Montreal
+8405 London
+8489 New York
+8614 San Francisco
+8621 Kuala Lumpur
+8693 Mumbai
+8752 Amsterdam
+8780 Los Angeles
+8813 Montevideo
+9099 Stockholm
+9136 Manchester
+9285 Miami
+9311 Recife
+9520 Orlando
+9550 Lima
+9649 Sydney
+9871 New York
+9890 Zurich
+9894 Beijing
+9898 Moscow
+9911 Dubai
