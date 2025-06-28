@@ -624,10 +624,12 @@ int main() {
 
                         int assento = atoi(assentoStr.c_str());
                         int numVoo = atoi(numVooStr.c_str());
-                        Passageiro p(nome, cpf, codRes, numVoo, assento);
-                        lista.insert(p, root);
-                        cpfsUsados.insert(cpf);
-                        assentosOcupados.insert({numVoo, assento});
+                        if (aeroporto.buscar(numVoo) != "Voo não encontrado") {
+                            Passageiro p(nome, cpf, codRes, numVoo, assento);
+                            lista.insert(p, root);
+                            cpfsUsados.insert(cpf);
+                            assentosOcupados.insert({numVoo, assento});
+                        }
                     }
 
                     listaP.close();
@@ -718,6 +720,7 @@ int main() {
                 break;
             }
             case 8: {
+                //tem que deletar por cpf 
                 cin.ignore();
                 cout << "\nDigite um nome completo para deletar: ";
                 string delNome;
