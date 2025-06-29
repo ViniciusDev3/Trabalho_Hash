@@ -2,8 +2,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
-#include <vector>
-#include <map>
+#include <set>
 
 using namespace std;
 
@@ -12,11 +11,11 @@ private:
     string nome;
     string cpf;
     string codReserva;
-    string numVoo;
-    string assento;
+    int numVoo;
+    int assento;
 
 public:
-    Passageiro(string nome, string cpf, string codReserva, string numVoo, string assento)
+    Passageiro(string nome, string cpf, string codReserva, int numVoo, int assento)
     : nome(nome), cpf(cpf), codReserva(codReserva), numVoo(numVoo), assento(assento) {}
 
     void imprimir() const {
@@ -33,7 +32,11 @@ public:
         return nome;
     }
 
-    string getNumVoo() const {
+    string getCPF() const {
+        return cpf;
+    }
+
+    int getNumVoo() const {
         return numVoo;
     }
 
@@ -54,6 +57,7 @@ private:
     string data;
     TreeNode* left;
     TreeNode* right;
+    int node_height; // altura do nó
 
     TreeNode* minValueNode(TreeNode* node) 
     {
@@ -63,8 +67,15 @@ private:
         return current;
     }
 
+    void updateHeight()
+    {
+        int leftHeight = left ? left->node_height : 0;
+        int rightHeight = right ? right->node_height : 0;
+        node_height = 1 + max(leftHeight, rightHeight);
+    }
+
 public:
-    TreeNode(const string& value) : data(value), left(nullptr), right(nullptr) {}
+    TreeNode(const string& value) : data(value), left(nullptr), right(nullptr), node_height(1) {}
 
     ~TreeNode() 
     {
@@ -74,11 +85,11 @@ public:
 
     int getBalance()
     {
-        int leftHeight = left ? left->height() : 0;
-        int rightHeight = right ? right->height() : 0;
-        return (leftHeight - rightHeight);         
+        int leftHeight = left ? left->node_height : 0;
+        int rightHeight = right ? right->node_height : 0;
+        return leftHeight - rightHeight;
     }
-
+    
     TreeNode* rotateRight()
     {
         TreeNode* x = left;
@@ -86,6 +97,9 @@ public:
 
         x->right = this;
         left = T2;
+
+        this->updateHeight();
+        x->updateHeight();
 
         return x;
     }
@@ -97,70 +111,60 @@ public:
 
         y->left = this;
         right = T2;
-        
+
+        this->updateHeight();
+        y->updateHeight();
+
         return y;
     }
 
-    TreeNode* insert(const string& new_data) 
+     TreeNode* insert(const string& new_data) 
     {
-        if (new_data < data) 
+        if (new_data < data)
         {
-            if (left == nullptr)
+            if (!left)
                 left = new TreeNode(new_data);
             else
                 left = left->insert(new_data);
-        } 
+        }
         else if (new_data > data)
         {
-            if (right == nullptr)
+            if (!right)
                 right = new TreeNode(new_data);
             else
                 right = right->insert(new_data);
         }
         else
         {
-            // dados duplicados não são inseridos
-            return this;
+            return this; // não insere duplicados
         }
 
+        updateHeight();
         int balance = getBalance();
 
-        if (balance > 1)
+        // LL
+        if (balance > 1 && new_data < left->data)
+            return rotateRight();
+
+        // RR
+        if (balance < -1 && new_data > right->data)
+            return rotateLeft();
+
+        // LR
+        if (balance > 1 && new_data > left->data)
         {
-            if (new_data < left->data)
-                return rotateRight(); // LL
-            else
-            {
-                left = left->rotateLeft(); // LR
-                return rotateRight();
-            }
+            left = left->rotateLeft();
+            return rotateRight();
         }
 
-        if (balance < -1)
+        // RL
+        if (balance < -1 && new_data < right->data)
         {
-            if (new_data > right->data)
-                return rotateLeft(); // RR
-            else
-            {
-                right = right->rotateRight(); // RL
-                return rotateLeft();
-            }
+            right = right->rotateRight();
+            return rotateLeft();
         }
 
         return this;
-    }
-
-    void printTree(const string& prefix = "", bool isLeft = true) 
-    {
-        if (right)
-            right->printTree(prefix + (isLeft ? "│   " : "    "), false);
-
-        cout << prefix;
-        cout << (isLeft ? "└── " : "┌── ");
-        cout << data << endl;
-
-        if (left)
-            left->printTree(prefix + (isLeft ? "    " : "│   "), true);
     }
 
     void inOrder() 
@@ -181,13 +185,6 @@ public:
         return false;
     }
 
-    int height() 
-    {
-        int leftHeight = left ? left->height() : 0;
-        int rightHeight = right ? right->height() : 0;
-        return 1 + max(leftHeight, rightHeight);
-    }
-
     TreeNode* deleteNode(const string& key) 
     {
         if (key < data && left)
@@ -199,7 +196,7 @@ public:
             if (!left)
             {
                 TreeNode* temp = right;
-                this->right = nullptr;
+                right = nullptr;
                 delete this;
                 return temp;
             }
@@ -207,7 +204,7 @@ public:
             if (!right)
             {
                 TreeNode* temp = left;
-                this->left = nullptr;
+                left = nullptr;
                 delete this;
                 return temp;
             }
@@ -217,28 +214,29 @@ public:
             right = right->deleteNode(temp->data);
         }
 
+        updateHeight();
         int balance = getBalance();
 
-        if (balance > 1)
+        // LL
+        if (balance > 1 && left->getBalance() >= 0)
+            return rotateRight();
+
+        // LR
+        if (balance > 1 && left->getBalance() < 0)
         {
-            if (left->getBalance() >= 0)
-                return rotateRight();
-            else
-            {
-                left = left->rotateLeft();
-                return rotateRight();
-            }
+            left = left->rotateLeft();
+            return rotateRight();
         }
 
-        if (balance < -1)
+        // RR
+        if (balance < -1 && right->getBalance() <= 0)
+            return rotateLeft();
+
+        // RL
+        if (balance < -1 && right->getBalance() > 0)
         {
-            if (right->getBalance() <= 0)
-                return rotateLeft();
-            else
-            {
-                right = right->rotateRight();
-                return rotateLeft();
-            }
+            right = right->rotateRight();
+            return rotateLeft();
         }
 
         return this;
@@ -250,11 +248,13 @@ public:
         {
             left->clear();
             delete left;
+            left = nullptr;
         }
         if (right)
         {
             right->clear();
             delete right;
+            right = nullptr;
         }
     }	
 };
@@ -290,36 +290,71 @@ public:
         }
     }
 
-    void deletarPorNome(const string& nome) {
-    if (!head) {
-        cout << "A lista está vazia.\n";
-        return;
-    }
+    pair<string, int> deletarPorCPF(const string& cpf) {
+        if (!head) {
+            cout << "A lista está vazia.\n";
+            return {"", -1};
+        }
 
-    No* atual = head;
-    No* anterior = nullptr;
+        No* atual = head;
+        No* anterior = nullptr;
 
         while (atual) {
-            if (atual->pessoal.getNome() == nome) {
+            if (atual->pessoal.getCPF() == cpf) {
+                string nome = atual->pessoal.getNome();
+                int voo = atual->pessoal.getNumVoo();
                 if (atual == head) {
                     head = head->next;
-                    if (atual == tail) tail = nullptr; // lista ficou vazia
+                    if (atual == tail) tail = nullptr;
                 } else {
                     anterior->next = atual->next;
                     if (atual == tail) tail = anterior;
                 }
                 delete atual;
-                cout << "Passageiro com Nome " << nome << " removido com sucesso.\n";
-                return;
+                cout << "Passageiro com CPF " << cpf << " removido com sucesso.\n";
+                return {nome, voo};
             }
             anterior = atual;
             atual = atual->next;
         }
 
-        cout << "Passageiro com Nome " << nome << " não encontrado.\n";
+        cout << "Passageiro com CPF " << cpf << " não encontrado.\n";
+        return {"", -1};
     }
 
-    void imprimirPorVoo(string numeroVoo) const {
+
+    void deletarPorVoo(int numeroVoo, TreeNode*& rootAVL) {
+        No* atual = head;
+        No* anterior = nullptr;
+
+        while (atual) {
+            No* proximo = atual->next;
+
+            if (atual->pessoal.getNumVoo() == numeroVoo) {
+                string nome = atual->pessoal.getNome();
+                rootAVL = rootAVL ? rootAVL->deleteNode(nome) : nullptr;
+
+                if (atual == head) {
+                    head = proximo;
+                    if (atual == tail) tail = nullptr;
+                    delete atual;
+                } else {
+                    anterior->next = proximo;
+                    if (atual == tail) tail = anterior;
+                    delete atual;
+                }
+            } else {
+                anterior = atual;
+            }
+
+            atual = proximo;
+        }
+
+        cout << "Todos os passageiros do voo " << numeroVoo << " foram removidos.\n";
+    }
+
+
+    void imprimirPorVoo(int numeroVoo) const {
         No* atual = head;
         bool encontrou = false;
 
@@ -342,9 +377,10 @@ public:
 struct Node {
     int chave;
     string valor;
+    int passageiros;
     Node* proximo;
-    
-    Node(int key, const string& data) : chave(key), valor(data), proximo(nullptr) {}
+
+    Node(int key, const string& data) : chave(key), valor(data), passageiros(0), proximo(nullptr) {}
 };
 
 class Voos {
@@ -355,32 +391,6 @@ private:
     int hashFunction(int chave) const 
     {
         return chave % tamanho_tabela;
-    }
-    
-    void redimensionar(int novo_tamanho) 
-    {
-        Node** nova_tabela = new Node*[novo_tamanho]();  
-        
-        //reinsere todos os elementos na nova tabela
-        for (int i = 0; i < tamanho_tabela; ++i) 
-        {
-            Node* atual = tabela_hash[i];
-            while (atual != nullptr) 
-            {
-                Node* proximo = atual->proximo;
-                int novo_indice = hashFunction(atual->chave) % novo_tamanho;
-                
-                atual->proximo = nova_tabela[novo_indice];
-                nova_tabela[novo_indice] = atual;
-                
-                atual = proximo;
-            }
-        }
-        
-        //libera a tabela antiga e atualiza
-        delete[] tabela_hash;
-        tabela_hash = nova_tabela;
-        tamanho_tabela = novo_tamanho;
     }
     
     void limparTabela() 
@@ -408,8 +418,29 @@ public:
         limparTabela();
         delete[] tabela_hash;
     }
+
+    int cont = 0;
+    void cadastrarVooManual(int &tamanho)
+    {
+        int numero_voo;
+        char destino[30];
+
+        if (cont >= tamanho) {
+            cout << "Limite de voos cadastrados atingido\n";
+            return;
+        }
+        cont++;
+
+        cout << "\nDigite o número do destino que deseja cadastrar: ";
+        cin >> numero_voo;
+        cout << "Digite o nome do destino que deseja cadastrar: ";
+        cin >> destino;
+
+        inserir(numero_voo, string(destino));
+    }
     
-    void cadastrarVoo() 
+    int limite = 0;
+    void cadastrarVooArquivo(int &tamanho) 
     {
         int numero_voo;
         char destino[30];
@@ -422,23 +453,28 @@ public:
             return;
         }
 
+        if(limite == 1)
+        {
+            cout << "Limite de voos cadastrados atingidos" << endl;
+            return;
+        }
+
         while(fscanf(lista_voos, "%d %99[^\n]", &numero_voo, destino) == 2) 
         {
             inserir(numero_voo, string(destino));
+            cont++;
+            if(cont >= tamanho)
+            {
+                limite++;
+                fclose(lista_voos);
+                cout << "\nVoos Cadastrados com sucesso!" << endl;
+                return;
+            }
         }
-
-        cout << "Voos Cadastrados com sucesso!" << endl;
-        
-        fclose(lista_voos);
     }
 
     void inserir(int chave, const string& valor) 
     {
-        if (contarElementos() > 0.7 * tamanho_tabela) 
-        {
-            redimensionar(tamanho_tabela * 2);
-        }
-        
         int indice = hashFunction(chave);
         
         Node* atual = tabela_hash[indice];
@@ -446,10 +482,12 @@ public:
         {
             if (atual->chave == chave) 
             {
+		        cont--; //p nao contar como +1 voo cadastrado
                 atual->valor = valor;
                 cout << "Voo " << chave << " atualizado.\n";
                 return;
             }
+	    
             atual = atual->proximo;
         }
         
@@ -478,21 +516,6 @@ public:
         }
         return false;
     }
-    
-    int contarElementos() const 
-    {
-        int count = 0;
-        for (int i = 0; i < tamanho_tabela; ++i) 
-        {
-            Node* atual = tabela_hash[i];
-            while (atual != nullptr) 
-            {
-                ++count;
-                atual = atual->proximo;
-            }
-        }
-        return count;
-    }
 
     string buscar(int chave) const 
     {
@@ -503,11 +526,48 @@ public:
         {
             if (atual->chave == chave) 
             {
-                return "Voo: " + to_string(atual->chave) + " | Destino: " + atual->valor;
+                return "Voo: " + to_string(atual->chave) + " | Destino: " + atual->valor + " | Numero de passageiros: " + to_string(atual->passageiros);
             }
             atual = atual->proximo;
         }
         return "Voo não encontrado";
+    }
+
+    bool vooTemEspaco(int chave) {
+        int indice = hashFunction(chave);
+        Node* atual = tabela_hash[indice];
+
+        while (atual != nullptr) {
+            if (atual->chave == chave) {
+                return atual->passageiros < 250;
+            }
+            atual = atual->proximo;
+        }
+        return false;
+    }
+
+    void incrementarPassageiro(int chave) {
+        int indice = hashFunction(chave);
+        Node* atual = tabela_hash[indice];
+        while (atual != nullptr) {
+            if (atual->chave == chave) {
+                atual->passageiros++;
+                return;
+            }
+            atual = atual->proximo;
+        }
+    }
+
+    void decrementarPassageiro(int chave) {
+        int indice = hashFunction(chave);
+        Node* atual = tabela_hash[indice];
+        while (atual != nullptr) {
+            if (atual->chave == chave && atual->passageiros > 0) {
+                atual->passageiros--;
+                return;
+            }
+            atual = atual->proximo;
+        }
     }
 
     void imprimir() const 
@@ -523,7 +583,7 @@ public:
                 cout << "Posição: " << i << ": ";
                 while (atual != nullptr) 
                 {
-                    cout << "[" << atual->chave << "][" << atual->valor << "] ";
+                    cout << "[" << atual->chave << " , " << atual->valor << ", Passageiros: " << atual->passageiros << "]";
                     atual = atual->proximo;
                 }
                 cout << endl;
@@ -532,17 +592,41 @@ public:
     }
 };
 
+set<string> reservasUsadas; 
+set<string> cpfsUsados;
+set<pair<int, int>> assentosOcupados;
 
 string gerarCod() {
-    return "R" + to_string(rand()%10000);
+    string cod;
+    cod += char('A' + rand() % 26);
+    cod += char('A' + rand() % 26);
+    cod += char('0' + rand() % 10);
+    cod += char('0' + rand() % 10);
+    cod += char('A' + rand() % 26);
+    cod += char('0' + rand() % 10);
+    return cod;
 }
 
 string gerarAssento() {
-    char letra = 'A' + rand()%6;
-    int num = 1 + rand()%30;
-    return to_string(num) + letra;
+    int num = 1 + rand()%249;
+    return to_string(num);
 }
 
+bool cpfValido(const string& cpf) {
+    if (cpf.length() != 11) return false;
+    for (char c : cpf) {
+        if (!isdigit(c)) return false;
+    }
+    return true;
+}
+
+bool vooValido(const string& numero) {
+    if (numero.length() != 4) return false;
+    for (char c : numero) {
+        if (!isdigit(c)) return false;
+    }
+    return true;
+}
 
 int main() {
     srand((unsigned)time(nullptr));
@@ -550,52 +634,18 @@ int main() {
     ListaPassageiros lista;
     TreeNode* root = nullptr;
 
-    string nome, cpf, codRes, numVoo, assento;
+    string nome, cpf, codRes;
+    int numVoo , assento;
 
-    int tamanho_inicial;
+    int tamanho;
     cout << "Digite o tamanho inicial da tabela hash: ";
-    cin >> tamanho_inicial;
-    
-    string nomeArquivo;
-
-    if (tamanho_inicial <= 2) {
-        nomeArquivo = "passageiros_500.txt";
-    } else if (tamanho_inicial > 2 && tamanho_inicial <= 3) {
-        nomeArquivo = "passageiros_800.txt";
-    } else if (tamanho_inicial > 3 && tamanho_inicial <= 4) {
-        nomeArquivo = "passageiros_1000.txt";
-    } else if (tamanho_inicial > 4 && tamanho_inicial <= 20) {
-        nomeArquivo = "passageiros_5000.txt";
-    } else if (tamanho_inicial > 20 && tamanho_inicial <= 40) {
-        nomeArquivo = "passageiros_10000.txt";
-    } else {
-        nomeArquivo = "passageiros_10000.txt";
+    while (!(cin >> tamanho) || tamanho <= 0) {
+        cout << "Entrada inválida! Digite um número inteiro maior que 0: ";
+        cin.clear();              
+        cin.ignore(10000, '\n');
     }
 
-    ifstream listaP(nomeArquivo);
-    cout << nomeArquivo << endl;
-    if (!listaP.is_open()) {
-        cerr << "Erro ao abrir o arquivo!" << endl;
-        return 1;
-    }
-
-    string linha;
-    while (getline(listaP, linha)) {
-
-        stringstream ss(linha);
-        getline(ss, nome, ',');
-        getline(ss, cpf, ',');
-        getline(ss, codRes, ',');
-        getline(ss, numVoo, ',');
-        getline(ss, assento, ',');
-
-        Passageiro p(nome, cpf, codRes, numVoo, assento);
-        lista.insert(p, root);
-    }
-
-    listaP.close();
-
-    Voos aeroporto(tamanho_inicial);
+    Voos aeroporto(tamanho);
     
     while (true) {
         cout << "\nMENU:\n";
@@ -615,23 +665,84 @@ int main() {
         
         switch (opcao) {
             case 1: {
-                aeroporto.cadastrarVoo();
+                cout << "deseja cadastrar o voo manualmente (1) ou ler de um arquivo (2)? " << endl; 
+                int opcaoCadastro;
+                cin >> opcaoCadastro;
+
+                if(opcaoCadastro != 1 && opcaoCadastro != 2)
+                {
+                    cout << "opção inválida! digite (1) manualmente e (2) por leitura de arquivo" << endl;
+                    cin >> opcaoCadastro;
+                }
+
+                if(opcaoCadastro == 1){
+                    aeroporto.cadastrarVooManual(tamanho);
+                }else{
+                    aeroporto.cadastrarVooArquivo(tamanho);
+                    string nomeArquivo;
+
+                    if (tamanho <= 2) {
+                        nomeArquivo = "passageiros_500.txt";
+                    } else if (tamanho > 2 && tamanho <= 3) {
+                        nomeArquivo = "passageiros_800.txt";
+                    } else if (tamanho > 3 && tamanho <= 4) {
+                        nomeArquivo = "passageiros_1000.txt";
+                    } else if (tamanho > 4 && tamanho <= 20) {
+                        nomeArquivo = "passageiros_5000.txt";
+                    } else if (tamanho > 20 && tamanho<= 40) {
+                        nomeArquivo = "passageiros_10000.txt";
+                    } else {
+                        nomeArquivo = "passageiros_10000.txt";
+                    }
+
+                    ifstream listaP(nomeArquivo);
+                    cout << nomeArquivo << endl;
+                    if (!listaP.is_open()) {
+                        cerr << "Erro ao abrir o arquivo!" << endl;
+                        return 1;
+                    }
+
+                    string linha;
+                    string numVooStr;
+                    string assentoStr;
+                    while (getline(listaP, linha)) {
+                        
+                        stringstream ss(linha);
+                        getline(ss, nome, ',');
+                        getline(ss, cpf, ',');
+                        getline(ss, codRes, ',');                        
+                        getline(ss, numVooStr, ',');
+                        getline(ss, assentoStr, ',');
+
+                        int assento = atoi(assentoStr.c_str());
+                        int numVoo = atoi(numVooStr.c_str());
+                        if (aeroporto.buscar(numVoo) != "Voo não encontrado") {
+                            if (aeroporto.vooTemEspaco(numVoo)) {
+                                Passageiro p(nome, cpf, codRes, numVoo, assento);
+                                lista.insert(p, root);
+                                cpfsUsados.insert(cpf);
+                                assentosOcupados.insert({numVoo, assento});
+                                aeroporto.incrementarPassageiro(numVoo);
+                            } else {
+                                break;
+                            }
+                        }
+                    }
+
+                    listaP.close();
+                }
+                
                 break;
             }
             case 2: {
-                string numVooStr;
-                cout << "Digite o número do voo (ex: LL1234): ";
-                cin >> numVooStr;
-
-                // Extrair o número da string (removendo o prefixo "LL")
-                int chaveHash = stoi(numVooStr.substr(2));
-
-                // Buscar e exibir na hash
-                string resultado = aeroporto.buscar(chaveHash);
-                cout << resultado << endl;
-
-                // Exibir passageiros do voo
-                lista.imprimirPorVoo(numVooStr);
+                int numero;
+                cout << "\nDigite o número do voo: ";
+                cin >> numero;
+                cout << aeroporto.buscar(numero) << endl;
+                if (aeroporto.buscar(numero) == "Voo não encontrado"){
+                    break;
+                }
+                lista.imprimirPorVoo(numero);
                 break;
             }
             case 3: {
@@ -649,7 +760,9 @@ int main() {
                 }
                 
                 if (aeroporto.deletarVoo(voo)) {
-                    cout << "Voo " << voo << " removido com sucesso.\n";
+                    lista.deletarPorVoo(voo, root);
+                    aeroporto.cont--;
+                    cout << "Voo " << voo << " e seus passageiros foram removidos com sucesso.\n";
                 } else {
                     cout << "Erro ao remover voo " << voo << ".\n";
                 }
@@ -663,23 +776,70 @@ int main() {
             case 6: {
                 cout << "\n Lista em ordem:\n";
                 root->inOrder();
-                root->printTree();
                 break;
             }
             case 7: {
                 cin.ignore();
-                
+
                 cout << "Digite o nome completo: ";
                 getline(cin, nome);
-                cout << "Digite o CPF: ";
+
+                cout << "Digite o CPF (somente números, 11 dígitos): ";
                 getline(cin, cpf);
-                cout << "Digite o código de reserva: ";
-                getline(cin, codRes);
-                cout << "Digite o número do voo: ";
-                cin >> numVoo;
+                while (!cpfValido(cpf) || cpfsUsados.count(cpf)) {
+                    if (!cpfValido(cpf)) {
+                        cout << "CPF inválido! Digite um CPF válido (11 dígitos numéricos): ";
+                    } else {
+                        cout << "CPF já utilizado. Digite um CPF diferente: ";
+                    }
+                    getline(cin, cpf);
+                }
+                cpfsUsados.insert(cpf);
+
+                do {
+                    codRes = gerarCod();
+                } while (reservasUsadas.count(codRes) > 0);
+
+                reservasUsadas.insert(codRes);
+                cout << "Seu código de reserva é: " << codRes << endl;
+
+                string numVooStr;
+                cout << "Digite o número do voo (4 dígitos): ";
+                getline(cin, numVooStr);
+
+                while (!vooValido(numVooStr)) {
+                    cout << "Número do voo inválido! Deve conter 4 dígitos numéricos. Tente novamente: ";
+                    getline(cin, numVooStr);
+                }
+                numVoo = stoi(numVooStr);
+
+                if (aeroporto.buscar(numVoo) == "Voo não encontrado") {
+                    cout << "Voo não existe. Cadastre o voo antes de adicionar passageiros.\n";
+                    break;
+                }
+
+                if (!aeroporto.vooTemEspaco(numVoo)) {
+                    cout << "Voo atingiu a capacidade máxima de passageiros (250). Não é possível adicionar mais passageiros.\n";
+                    break;
+                }
+
+                aeroporto.incrementarPassageiro(numVoo);
+
+                cout << "Digite o número do assento (1 a 250): ";
+                cin >> assento;
                 cin.ignore();
-                cout << "Digite o número do assento: ";
-                getline(cin, assento);
+
+                while (assento < 1 || assento > 250 || assentosOcupados.count({numVoo, assento})) {
+                    if (assento < 1 || assento > 250)
+                        cout << "Assento inválido. Digite um número entre 1 e 250: ";
+                    else
+                        cout << "Assento já ocupado. Digite outro número de assento: ";
+                    
+                    cin >> assento;
+                    cin.ignore();
+                }
+
+                assentosOcupados.insert({numVoo, assento});
 
                 Passageiro p(nome, cpf, codRes, numVoo, assento);
                 lista.insert(p, root);
@@ -688,16 +848,29 @@ int main() {
             }
             case 8: {
                 cin.ignore();
-                cout << "\nDigite um nome completo para deletar: ";
-                string delNome;
-                getline(cin, delNome);
+                cout << "\nDigite o CPF completo para deletar: ";
+                string delCPF;
+                getline(cin, delCPF);
 
-                if (root && root->search(delNome)) {
-                    root = root->deleteNode(delNome);
-                    cout << "\n\"" << delNome << "\" removido da árvore AVL.\n";
-                    lista.deletarPorNome(delNome);
+                auto [nomeRemovido, vooRemovido] = lista.deletarPorCPF(delCPF);
+
+                if (!nomeRemovido.empty()) {
+                    aeroporto.decrementarPassageiro(vooRemovido);
+                    cpfsUsados.erase(delCPF);
+
+                    for (auto it = assentosOcupados.begin(); it != assentosOcupados.end(); ++it) {
+                        if (it->first == vooRemovido) {
+                            assentosOcupados.erase(it);
+                            break;
+                        }
+                    }
+
+                    if (root && root->search(nomeRemovido)) {
+                        root = root->deleteNode(nomeRemovido);
+                        cout << "\n\"" << nomeRemovido << "\" removido da árvore AVL.\n";
+                    }
                 } else {
-                    cout << "\nNome \"" << delNome << "\" não encontrado na árvore.\n";
+                    cout << "CPF não encontrado.\n";
                 }
                 break;
             }
