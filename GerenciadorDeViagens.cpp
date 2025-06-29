@@ -2,8 +2,6 @@
 #include <string>
 #include <fstream>
 #include <sstream>
-#include <vector>
-#include <map>
 #include <set>
 
 using namespace std;
@@ -32,6 +30,10 @@ public:
 
     string getNome() const {
         return nome;
+    }
+
+    string getCPF() const {
+        return cpf;
     }
 
     int getNumVoo() const {
@@ -291,34 +293,69 @@ public:
         }
     }
 
-    void deletarPorNome(const string& nome) {
-    if (!head) {
-        cout << "A lista está vazia.\n";
-        return;
-    }
+    pair<string, int> deletarPorCPF(const string& cpf) {
+        if (!head) {
+            cout << "A lista está vazia.\n";
+            return {"", -1};
+        }
 
-    No* atual = head;
-    No* anterior = nullptr;
+        No* atual = head;
+        No* anterior = nullptr;
 
         while (atual) {
-            if (atual->pessoal.getNome() == nome) {
+            if (atual->pessoal.getCPF() == cpf) {
+                string nome = atual->pessoal.getNome();
+                int voo = atual->pessoal.getNumVoo();
                 if (atual == head) {
                     head = head->next;
-                    if (atual == tail) tail = nullptr; // lista ficou vazia
+                    if (atual == tail) tail = nullptr;
                 } else {
                     anterior->next = atual->next;
                     if (atual == tail) tail = anterior;
                 }
                 delete atual;
-                cout << "Passageiro com Nome " << nome << " removido com sucesso.\n";
-                return;
+                cout << "Passageiro com CPF " << cpf << " removido com sucesso.\n";
+                return {nome, voo};
             }
             anterior = atual;
             atual = atual->next;
         }
 
-        cout << "Passageiro com Nome " << nome << " não encontrado.\n";
+        cout << "Passageiro com CPF " << cpf << " não encontrado.\n";
+        return {"", -1};
     }
+
+
+    void deletarPorVoo(int numeroVoo, TreeNode*& rootAVL) {
+        No* atual = head;
+        No* anterior = nullptr;
+
+        while (atual) {
+            No* proximo = atual->next;
+
+            if (atual->pessoal.getNumVoo() == numeroVoo) {
+                string nome = atual->pessoal.getNome();
+                rootAVL = rootAVL ? rootAVL->deleteNode(nome) : nullptr;
+
+                if (atual == head) {
+                    head = proximo;
+                    if (atual == tail) tail = nullptr;
+                    delete atual;
+                } else {
+                    anterior->next = proximo;
+                    if (atual == tail) tail = anterior;
+                    delete atual;
+                }
+            } else {
+                anterior = atual;
+            }
+
+            atual = proximo;
+        }
+
+        cout << "Todos os passageiros do voo " << numeroVoo << " foram removidos.\n";
+    }
+
 
     void imprimirPorVoo(int numeroVoo) const {
         No* atual = head;
@@ -343,9 +380,10 @@ public:
 struct Node {
     int chave;
     string valor;
+    int passageiros;
     Node* proximo;
-    
-    Node(int key, const string& data) : chave(key), valor(data), proximo(nullptr) {}
+
+    Node(int key, const string& data) : chave(key), valor(data), passageiros(0), proximo(nullptr) {}
 };
 
 class Voos {
@@ -389,12 +427,12 @@ public:
     {
         int numero_voo;
         char destino[30];
-        cont++;
 
-        if(cont > tamanho){
-            cout << "Limite de voos cadastrados atingidos" << endl;
+        if (cont >= tamanho) {
+            cout << "Limite de voos cadastrados atingido\n";
             return;
         }
+        cont++;
 
         cout << "\nDigite o número do destino que deseja cadastrar: ";
         cin >> numero_voo;
@@ -410,7 +448,7 @@ public:
         int numero_voo;
         char destino[30];
 
-        FILE* lista_voos = fopen("voos1.txt", "r");
+        FILE* lista_voos = fopen("voos.txt", "r");
 
         if (lista_voos == nullptr)
         {
@@ -491,11 +529,48 @@ public:
         {
             if (atual->chave == chave) 
             {
-                return "Voo: " + to_string(atual->chave) + " | Destino: " + atual->valor;
+                return "Voo: " + to_string(atual->chave) + " | Destino: " + atual->valor + " | Numero de passageiros: " + to_string(atual->passageiros);
             }
             atual = atual->proximo;
         }
         return "Voo não encontrado";
+    }
+
+    bool vooTemEspaco(int chave) {
+        int indice = hashFunction(chave);
+        Node* atual = tabela_hash[indice];
+
+        while (atual != nullptr) {
+            if (atual->chave == chave) {
+                return atual->passageiros < 250;
+            }
+            atual = atual->proximo;
+        }
+        return false;
+    }
+
+    void incrementarPassageiro(int chave) {
+        int indice = hashFunction(chave);
+        Node* atual = tabela_hash[indice];
+        while (atual != nullptr) {
+            if (atual->chave == chave) {
+                atual->passageiros++;
+                return;
+            }
+            atual = atual->proximo;
+        }
+    }
+
+    void decrementarPassageiro(int chave) {
+        int indice = hashFunction(chave);
+        Node* atual = tabela_hash[indice];
+        while (atual != nullptr) {
+            if (atual->chave == chave && atual->passageiros > 0) {
+                atual->passageiros--;
+                return;
+            }
+            atual = atual->proximo;
+        }
     }
 
     void imprimir() const 
@@ -511,7 +586,7 @@ public:
                 cout << "Posição: " << i << ": ";
                 while (atual != nullptr) 
                 {
-                    cout << "[" << atual->chave << "][" << atual->valor << "]";
+                    cout << "[" << atual->chave << " , " << atual->valor << ", Passageiros: " << atual->passageiros << "]";
                     atual = atual->proximo;
                 }
                 cout << endl;
@@ -540,6 +615,22 @@ string gerarAssento() {
     return to_string(num);
 }
 
+bool cpfValido(const string& cpf) {
+    if (cpf.length() != 11) return false;
+    for (char c : cpf) {
+        if (!isdigit(c)) return false;
+    }
+    return true;
+}
+
+bool vooValido(const string& numero) {
+    if (numero.length() != 4) return false;
+    for (char c : numero) {
+        if (!isdigit(c)) return false;
+    }
+    return true;
+}
+
 int main() {
     srand((unsigned)time(nullptr));
 
@@ -551,7 +642,11 @@ int main() {
 
     int tamanho;
     cout << "Digite o tamanho inicial da tabela hash: ";
-    cin >> tamanho;
+    while (!(cin >> tamanho) || tamanho <= 0) {
+        cout << "Entrada inválida! Digite um número inteiro maior que 0: ";
+        cin.clear();              
+        cin.ignore(10000, '\n');
+    }
 
     Voos aeroporto(tamanho);
     
@@ -625,10 +720,15 @@ int main() {
                         int assento = atoi(assentoStr.c_str());
                         int numVoo = atoi(numVooStr.c_str());
                         if (aeroporto.buscar(numVoo) != "Voo não encontrado") {
-                            Passageiro p(nome, cpf, codRes, numVoo, assento);
-                            lista.insert(p, root);
-                            cpfsUsados.insert(cpf);
-                            assentosOcupados.insert({numVoo, assento});
+                            if (aeroporto.vooTemEspaco(numVoo)) {
+                                Passageiro p(nome, cpf, codRes, numVoo, assento);
+                                lista.insert(p, root);
+                                cpfsUsados.insert(cpf);
+                                assentosOcupados.insert({numVoo, assento});
+                                aeroporto.incrementarPassageiro(numVoo);
+                            } else {
+                                break;
+                            }
                         }
                     }
 
@@ -663,7 +763,9 @@ int main() {
                 }
                 
                 if (aeroporto.deletarVoo(voo)) {
-                    cout << "Voo " << voo << " removido com sucesso.\n";
+                    lista.deletarPorVoo(voo, root);
+                    aeroporto.cont--;
+                    cout << "Voo " << voo << " e seus passageiros foram removidos com sucesso.\n";
                 } else {
                     cout << "Erro ao remover voo " << voo << ".\n";
                 }
@@ -681,13 +783,18 @@ int main() {
             }
             case 7: {
                 cin.ignore();
-                
+
                 cout << "Digite o nome completo: ";
                 getline(cin, nome);
-                cout << "Digite o CPF: ";
+
+                cout << "Digite o CPF (somente números, 11 dígitos): ";
                 getline(cin, cpf);
-                while (cpfsUsados.count(cpf)) {
-                    cout << "CPF já utilizado. Digite um CPF diferente: ";
+                while (!cpfValido(cpf) || cpfsUsados.count(cpf)) {
+                    if (!cpfValido(cpf)) {
+                        cout << "CPF inválido! Digite um CPF válido (11 dígitos numéricos): ";
+                    } else {
+                        cout << "CPF já utilizado. Digite um CPF diferente: ";
+                    }
                     getline(cin, cpf);
                 }
                 cpfsUsados.insert(cpf);
@@ -699,19 +806,42 @@ int main() {
                 reservasUsadas.insert(codRes);
                 cout << "Seu código de reserva é: " << codRes << endl;
 
-                cout << "Digite o número do voo: ";
-                cin >> numVoo;
-                cin.ignore();
+                string numVooStr;
+                cout << "Digite o número do voo (4 dígitos): ";
+                getline(cin, numVooStr);
 
-                cout << "Digite o número do assento: ";
+                while (!vooValido(numVooStr)) {
+                    cout << "Número do voo inválido! Deve conter 4 dígitos numéricos. Tente novamente: ";
+                    getline(cin, numVooStr);
+                }
+                numVoo = stoi(numVooStr);
+
+                if (aeroporto.buscar(numVoo) == "Voo não encontrado") {
+                    cout << "Voo não existe. Cadastre o voo antes de adicionar passageiros.\n";
+                    break;
+                }
+
+                if (!aeroporto.vooTemEspaco(numVoo)) {
+                    cout << "Voo atingiu a capacidade máxima de passageiros (250). Não é possível adicionar mais passageiros.\n";
+                    break;
+                }
+
+                aeroporto.incrementarPassageiro(numVoo);
+
+                cout << "Digite o número do assento (1 a 250): ";
                 cin >> assento;
                 cin.ignore();
 
-                while (assentosOcupados.count({numVoo, assento})) {
-                    cout << "Assento já ocupado. Digite outro número de assento: ";
+                while (assento < 1 || assento > 250 || assentosOcupados.count({numVoo, assento})) {
+                    if (assento < 1 || assento > 250)
+                        cout << "Assento inválido. Digite um número entre 1 e 250: ";
+                    else
+                        cout << "Assento já ocupado. Digite outro número de assento: ";
+                    
                     cin >> assento;
                     cin.ignore();
-                }   
+                }
+
                 assentosOcupados.insert({numVoo, assento});
 
                 Passageiro p(nome, cpf, codRes, numVoo, assento);
@@ -720,18 +850,30 @@ int main() {
                 break;
             }
             case 8: {
-                //tem que deletar por cpf 
                 cin.ignore();
-                cout << "\nDigite um nome completo para deletar: ";
-                string delNome;
-                getline(cin, delNome);
+                cout << "\nDigite o CPF completo para deletar: ";
+                string delCPF;
+                getline(cin, delCPF);
 
-                if (root && root->search(delNome)) {
-                    root = root->deleteNode(delNome);
-                    cout << "\n\"" << delNome << "\" removido da árvore AVL.\n";
-                    lista.deletarPorNome(delNome);
+                auto [nomeRemovido, vooRemovido] = lista.deletarPorCPF(delCPF);
+
+                if (!nomeRemovido.empty()) {
+                    aeroporto.decrementarPassageiro(vooRemovido);
+                    cpfsUsados.erase(delCPF);
+
+                    for (auto it = assentosOcupados.begin(); it != assentosOcupados.end(); ++it) {
+                        if (it->first == vooRemovido) {
+                            assentosOcupados.erase(it);
+                            break;
+                        }
+                    }
+
+                    if (root && root->search(nomeRemovido)) {
+                        root = root->deleteNode(nomeRemovido);
+                        cout << "\n\"" << nomeRemovido << "\" removido da árvore AVL.\n";
+                    }
                 } else {
-                    cout << "\nNome \"" << delNome << "\" não encontrado na árvore.\n";
+                    cout << "CPF não encontrado.\n";
                 }
                 break;
             }
