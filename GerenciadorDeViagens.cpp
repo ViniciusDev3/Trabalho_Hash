@@ -7,6 +7,10 @@
 
 using namespace std;
 
+set<string> reservasUsadas; 
+set<string> cpfsUsados;
+set<pair<int, int>> assentosOcupados;
+
 class Passageiro {
 private:
     string nome;
@@ -157,19 +161,6 @@ public:
         }
 
         return this;
-    }
-
-    void printTree(const string& prefix = "", bool isLeft = true) 
-    {
-        if (right)
-            right->printTree(prefix + (isLeft ? "│   " : "    "), false);
-
-        cout << prefix;
-        cout << (isLeft ? "└── " : "┌── ");
-        cout << data << endl;
-
-        if (left)
-            left->printTree(prefix + (isLeft ? "    " : "│   "), true);
     }
 
     void inOrder() 
@@ -332,8 +323,6 @@ public:
         return {{"", -1}, -1};
     }
 
-
-
     void deletarPorVoo(int numeroVoo, TreeNode*& rootAVL) {
         No* atual = head;
         No* anterior = nullptr;
@@ -343,7 +332,13 @@ public:
 
             if (atual->pessoal.getNumVoo() == numeroVoo) {
                 string nome = atual->pessoal.getNome();
+                string cpf = atual->pessoal.getCPF();
+                int assento = atual->pessoal.getAssento();
+
                 rootAVL = rootAVL ? rootAVL->deleteNode(nome) : nullptr;
+
+                cpfsUsados.erase(cpf);
+                assentosOcupados.erase({numeroVoo, assento});
 
                 if (atual == head) {
                     head = proximo;
@@ -363,7 +358,6 @@ public:
 
         cout << "Todos os passageiros do voo " << numeroVoo << " foram removidos.\n";
     }
-
 
     void imprimirPorVoo(int numeroVoo) const {
         No* atual = head;
@@ -614,10 +608,6 @@ public:
         }
     }
 };
-
-set<string> reservasUsadas; 
-set<string> cpfsUsados;
-set<pair<int, int>> assentosOcupados;
 
 string gerarCod() {
     string cod;
@@ -878,7 +868,7 @@ int main() {
                 string delCPF;
                 getline(cin, delCPF);
 
-               auto [dados, assentoRemovido] = lista.deletarPorCPF(delCPF);
+                auto [dados, assentoRemovido] = lista.deletarPorCPF(delCPF);
                 auto [nomeRemovido, vooRemovido] = dados;
 
                 if (!nomeRemovido.empty()) {
