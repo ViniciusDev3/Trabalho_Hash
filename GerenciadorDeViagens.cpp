@@ -369,7 +369,7 @@ public:
         No* atual = head;
         bool encontrou = false;
 
-        cout << "\n📋 Passageiros do voo " << numeroVoo << ":\n";
+        cout << "\nPassageiros do voo " << numeroVoo << ":\n";
         while (atual) {
             if (atual->pessoal.getNumVoo() == numeroVoo) {
                 atual->pessoal.imprimir();
@@ -797,8 +797,12 @@ int main() {
                 break;
             }
             case 6: {
-                cout << "\n Lista em ordem:\n";
-                root->inOrder();
+                cout << "\nLista em ordem:\n";
+                if (root) {
+                    root->inOrder();
+                } else {
+                    cout << "Nenhum passageiro cadastrado.\n";
+                }
                 break;
             }
             case 7: {
@@ -817,7 +821,7 @@ int main() {
                     }
                     getline(cin, cpf);
                 }
-                cpfsUsados.insert(cpf);
+                
 
                 do {
                     codRes = gerarCod();
@@ -846,8 +850,6 @@ int main() {
                     break;
                 }
 
-                aeroporto.incrementarPassageiro(numVoo);
-
                 cout << "Digite o número do assento (1 a 250): ";
                 cin >> assento;
                 cin.ignore();
@@ -861,7 +863,8 @@ int main() {
                     cin >> assento;
                     cin.ignore();
                 }
-
+                cpfsUsados.insert(cpf);
+                aeroporto.incrementarPassageiro(numVoo);
                 assentosOcupados.insert({numVoo, assento});
 
                 Passageiro p(nome, cpf, codRes, numVoo, assento);
