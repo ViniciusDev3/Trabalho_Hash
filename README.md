@@ -4,7 +4,7 @@ Projeto desenvolvido para simular um sistema de gerenciamento de passageiros e v
 
 - Lista Encadeada
 - Árvore AVL
-- Tabela Hash (em desenvolvimento)
+- Tabela Hash 
 
 O objetivo é demonstrar a aplicação prática dessas estruturas no armazenamento, ordenação e busca de informações em um sistema de reservas aéreas.
 
