@@ -703,7 +703,7 @@ int main() {
                     if (tamanho <= 2) {
                         nomeArquivo = "passageiros_500.txt";
                     } else if (tamanho > 2 && tamanho <= 3) {
-                        nomeArquivo = "passageiros_800.txt";
+                        nomeArquivo = "passageiros_750.txt";
                     } else if (tamanho > 3 && tamanho <= 4) {
                         nomeArquivo = "passageiros_1000.txt";
                     } else if (tamanho > 4 && tamanho <= 20) {
