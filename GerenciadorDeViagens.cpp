@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <chrono>
 #include <set>
 
 using namespace std;
@@ -689,8 +690,13 @@ int main() {
                 }
 
                 if(opcaoCadastro == 1){
+                    auto start = chrono::high_resolution_clock::now();
                     aeroporto.cadastrarVooManual(tamanho);
+                    auto end = chrono::high_resolution_clock::now();
+                    chrono::duration<double> tempo = end - start;
+                    cout << "Tempo de execução: " << tempo.count() << " segundos\n";
                 }else{
+                    auto start = chrono::high_resolution_clock::now();
                     aeroporto.cadastrarVooArquivo(tamanho);
                     string nomeArquivo;
 
@@ -743,6 +749,9 @@ int main() {
                     }
 
                     listaP.close();
+                    auto end = chrono::high_resolution_clock::now();
+                    chrono::duration<double> tempo = end - start;
+                    cout << "Tempo de execução: " << tempo.count() << " segundos\n";
                 }
                 
                 break;
@@ -751,22 +760,30 @@ int main() {
                 int numero;
                 cout << "\nDigite o número do voo: ";
                 cin >> numero;
+                auto start = chrono::high_resolution_clock::now();
                 cout << aeroporto.buscar(numero) << endl;
                 if (aeroporto.buscar(numero) == "Voo não encontrado"){
                     break;
                 }
                 lista.imprimirPorVoo(numero);
+                auto end = chrono::high_resolution_clock::now();
+                chrono::duration<double> tempo = end - start;
+                cout << "Tempo de execução: " << tempo.count() << " segundos\n";
                 break;
             }
             case 3: {
+                auto start = chrono::high_resolution_clock::now();
                 aeroporto.imprimir();
+                auto end = chrono::high_resolution_clock::now();
+                chrono::duration<double> tempo = end - start;
+                cout << "Tempo de execução: " << tempo.count() << " segundos\n";
                 break;
             }
             case 4: {
                 int voo;
                 cout << "\nDigite o numero do voo que deseja excluir: ";
                 cin >> voo;
-                
+                auto start = chrono::high_resolution_clock::now();
                 if (aeroporto.buscar(voo) == "Voo não encontrado") {
                     cout << "Voo " << voo << " não encontrado.\n";
                     break;
@@ -779,17 +796,28 @@ int main() {
                 } else {
                     cout << "Erro ao remover voo " << voo << ".\n";
                 }
+                auto end = chrono::high_resolution_clock::now();
+                chrono::duration<double> tempo = end - start;
+                cout << "Tempo de execução: " << tempo.count() << " segundos\n";
                 break;
             }
             case 5: {
                 cout << "\nLista completa de passageiros:\n";
+                auto start = chrono::high_resolution_clock::now();
                 lista.imprimir();
+                auto end = chrono::high_resolution_clock::now();
+                chrono::duration<double> tempo = end - start;
+                cout << "Tempo de execução: " << tempo.count() << " segundos\n";
                 break;
             }
             case 6: {
                 cout << "\nLista em ordem:\n";
                 if (root) {
+                    auto start = chrono::high_resolution_clock::now();
                     root->inOrder();
+                    auto end = chrono::high_resolution_clock::now();
+                    chrono::duration<double> tempo = end - start;
+                    cout << "Tempo de execução: " << tempo.count() << " segundos\n";
                 } else {
                     cout << "Nenhum passageiro cadastrado.\n";
                 }
@@ -864,6 +892,7 @@ int main() {
             }
             case 8: {
                 cin.ignore();
+                auto start = chrono::high_resolution_clock::now();
                 cout << "\nDigite o CPF completo para deletar: ";
                 string delCPF;
                 getline(cin, delCPF);
@@ -884,6 +913,9 @@ int main() {
                 else {
                     cout << "CPF não encontrado.\n";
                 }
+                auto end = chrono::high_resolution_clock::now();
+                chrono::duration<double> tempo = end - start;
+                cout << "Tempo de execução: " << tempo.count() << " segundos\n";
                 break;
             }
             case 9: {
